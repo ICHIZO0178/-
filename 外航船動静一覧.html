@@ -1,0 +1,3223 @@
+<!DOCTYPE html>
+<html lang="ja" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>外航船 動静一覧</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#ffffff;--bg2:#f7f7f5;--bg3:#f1f1ef;
+  --hover:rgba(55,53,47,.06);--sel:rgba(55,53,47,.09);
+  --text:#37352f;--t2:rgba(55,53,47,.65);--t3:rgba(55,53,47,.4);--t4:rgba(55,53,47,.25);
+  --border:rgba(55,53,47,.09);--border2:rgba(55,53,47,.16);
+  --blue:#2383e2;--blue-bg:rgba(35,131,226,.14);
+  --shadow:rgba(15,15,15,.05) 0 0 0 1px,rgba(15,15,15,.1) 0 3px 6px,rgba(15,15,15,.2) 0 9px 24px;
+  --shadow2:rgba(15,15,15,.08) 0 0 0 1px,rgba(15,15,15,.12) 0 2px 4px;
+  --font:'Inter',-apple-system,BlinkMacSystemFont,'Hiragino Sans','Yu Gothic',sans-serif;
+  --row-h:40px;
+}
+[data-theme=dark]{
+  --bg:#191919;--bg2:#202020;--bg3:#2a2a2a;
+  --hover:rgba(255,255,255,.055);--sel:rgba(255,255,255,.08);
+  --text:rgba(255,255,255,.9);--t2:rgba(255,255,255,.6);--t3:rgba(255,255,255,.35);--t4:rgba(255,255,255,.2);
+  --border:rgba(255,255,255,.07);--border2:rgba(255,255,255,.14);
+  --blue:#529cca;--blue-bg:rgba(82,156,202,.18);
+  --shadow:rgba(0,0,0,.25) 0 0 0 1px,rgba(0,0,0,.4) 0 3px 6px,rgba(0,0,0,.5) 0 9px 24px;
+  --shadow2:rgba(0,0,0,.3) 0 0 0 1px,rgba(0,0,0,.2) 0 2px 4px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font);font-size:14px;background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased;height:100vh;overflow:hidden}
+
+/* ── scrollbar always visible, white in dark mode ── */
+::-webkit-scrollbar{width:8px;height:8px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:rgba(55,53,47,.2);border-radius:4px}
+::-webkit-scrollbar-thumb:hover{background:rgba(55,53,47,.35)}
+[data-theme=dark] ::-webkit-scrollbar-thumb{background:rgba(255,255,255,.35)}
+[data-theme=dark] ::-webkit-scrollbar-thumb:hover{background:rgba(255,255,255,.55)}
+
+/* LOGIN */
+#login{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:9999}
+.lbox{width:400px;padding:36px;border:1px solid var(--border2);border-radius:8px;background:var(--bg);box-shadow:var(--shadow)}
+.llogo{display:flex;align-items:center;gap:10px;margin-bottom:24px}
+.llogo-n{width:32px;height:32px;background:#000;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:700;color:#fff;flex-shrink:0}
+[data-theme=dark] .llogo-n{background:#fff;color:#000}
+.llogo-t{font-size:18px;font-weight:700}
+.lh1{font-size:20px;font-weight:700;margin-bottom:4px}
+.lsub{font-size:13px;color:var(--t2);margin-bottom:24px}
+.llabel{font-size:12px;font-weight:500;color:var(--t2);margin-bottom:5px;display:block}
+.linput{width:100%;padding:8px 10px;border:1px solid var(--border2);border-radius:4px;background:var(--bg);color:var(--text);font-family:var(--font);font-size:14px;outline:none;margin-bottom:14px;transition:border-color .15s}
+.linput:focus{border-color:var(--blue);box-shadow:0 0 0 2px var(--blue-bg)}
+.lbtn{width:100%;padding:9px;background:var(--text);color:var(--bg);border:none;border-radius:4px;font-family:var(--font);font-size:14px;font-weight:500;cursor:pointer;transition:opacity .15s}
+.lbtn:hover{opacity:.82}
+.lerr{margin-top:10px;padding:8px 12px;background:rgba(235,87,87,.1);border:1px solid rgba(235,87,87,.25);border-radius:4px;color:#c0392b;font-size:13px;display:none}
+.lhint{margin-top:14px;font-size:11px;color:var(--t3);text-align:center;line-height:1.9}
+
+/* APP */
+#app{display:flex;height:100vh;opacity:0;transition:opacity .3s}
+#app.show{opacity:1}
+
+/* SIDEBAR */
+#sb{width:240px;min-width:240px;background:var(--bg2);display:flex;flex-direction:column;border-right:1px solid var(--border);overflow:hidden;transition:width .22s ease,min-width .22s ease,background .3s}
+#sb.collapsed{width:0;min-width:0;border-right:none}
+#sb-toggle{width:24px;height:24px;display:flex;align-items:center;justify-content:center;border-radius:4px;cursor:pointer;color:var(--t3);font-size:16px;border:none;background:none;transition:all .15s;flex-shrink:0}
+#sb-toggle:hover{background:var(--hover);color:var(--text)}
+.sb-top{padding:6px 4px 2px}
+.sb-ws{display:flex;align-items:center;gap:7px;padding:5px 8px;border-radius:4px;cursor:pointer;margin-bottom:1px;transition:background .1s}
+.sb-ws:hover{background:var(--hover)}
+.ws-ico{width:24px;height:24px;background:var(--text);border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--bg);flex-shrink:0}
+.ws-nm{font-size:13px;font-weight:600;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sb-act{display:flex;align-items:center;gap:7px;padding:4px 8px;border-radius:4px;cursor:pointer;color:var(--t2);font-size:13px;transition:background .1s}
+.sb-act:hover{background:var(--hover);color:var(--text)}
+.sb-act-ic{width:18px;text-align:center;font-size:13px;flex-shrink:0}
+.sb-div{height:1px;background:var(--border);margin:4px 8px}
+.sb-sec{font-size:11px;font-weight:600;color:var(--t3);padding:6px 12px 2px;letter-spacing:.04em;display:flex;align-items:center;justify-content:space-between}
+.sb-add{cursor:pointer;padding:0 2px;border-radius:3px;transition:all .1s;font-size:14px;color:var(--t3)}
+.sb-add:hover{background:var(--hover);color:var(--text)}
+#ptree{flex:1;overflow-y:auto;padding:1px 4px 8px}
+.ti{display:flex;align-items:center;gap:2px;padding:3px 6px;border-radius:4px;cursor:pointer;transition:background .1s;font-size:13px}
+.ti:hover{background:var(--hover)}
+.ti.act{background:var(--sel)}
+.ti-ic{font-size:14px;flex-shrink:0;margin:0 2px}
+.ti-nm{flex:1;color:var(--t2)}
+.ti.act .ti-nm{color:var(--text);font-weight:500}
+.sb-bot{padding:4px;border-top:1px solid var(--border)}
+.sb-bot-r{display:flex;align-items:center;gap:7px;padding:5px 8px;border-radius:4px;cursor:pointer;color:var(--t2);font-size:13px;transition:background .1s}
+.sb-bot-r:hover{background:var(--hover);color:var(--text)}
+
+/* MAIN */
+#main{flex:1;display:flex;flex-direction:column;overflow:hidden;background:var(--bg)}
+
+/* topnav */
+#tnav{height:44px;border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 16px;gap:8px;flex-shrink:0;display:none}
+.bc{flex:1;display:flex;align-items:center;gap:4px;font-size:13px;color:var(--t2)}
+.tnav-r{display:flex;align-items:center;gap:3px;flex-shrink:0}
+.tnav-btn{display:flex;align-items:center;gap:4px;padding:3px 7px;border-radius:4px;font-size:13px;color:var(--t2);cursor:pointer;border:none;background:none;font-family:var(--font);transition:all .1s}
+.tnav-btn:hover{background:var(--hover);color:var(--text)}
+.avatar{width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,#a8d4f0,#c8a8f0);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:#37352f;cursor:pointer;flex-shrink:0}
+
+/* DB VIEW */
+#dbview{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.db-title-area{padding:36px 96px 0;flex-shrink:0}
+.db-h1{font-size:36px;font-weight:700;margin-bottom:18px;letter-spacing:-.02em}
+.db-toolbar{padding:0 96px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;height:42px}
+.db-left{display:flex;align-items:center;gap:6px}
+.db-view-btn{display:flex;align-items:center;gap:5px;padding:4px 10px;border-radius:20px;background:var(--bg3);font-size:13px;cursor:pointer;border:none;font-family:var(--font);color:var(--text)}
+.db-right{display:flex;align-items:center;gap:4px}
+.db-ico-btn{width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:4px;cursor:pointer;color:var(--t2);border:none;background:none;font-size:14px;transition:all .1s}
+.db-ico-btn:hover{background:var(--hover);color:var(--text)}
+.db-new-btn{display:flex;align-items:center;border-radius:4px;overflow:hidden;margin-left:4px}
+.db-new-main{padding:5px 12px;background:var(--blue);color:#fff;font-size:13px;font-weight:500;cursor:pointer;border:none;font-family:var(--font)}
+.db-new-main:hover{opacity:.88}
+.db-new-dd{padding:5px 7px;background:var(--blue);color:#fff;font-size:13px;cursor:pointer;border:none;border-left:1px solid rgba(255,255,255,.25)}
+
+/* filter bar */
+.db-filters{padding:6px 96px;display:flex;align-items:center;gap:6px;flex-shrink:0;flex-wrap:wrap;min-height:38px}
+.fc{display:flex;align-items:center;gap:4px;padding:3px 8px;border:1px solid var(--border2);border-radius:4px;font-size:12px;color:var(--t2);background:var(--bg);cursor:pointer}
+.fc input,.fc select{border:none;outline:none;background:none;font-family:var(--font);font-size:12px;color:var(--text);min-width:70px}
+.fc select{cursor:pointer}
+.fc-clear{padding:3px 8px;border-radius:4px;font-size:12px;color:var(--t3);cursor:pointer;border:none;background:none;font-family:var(--font);transition:all .1s}
+.fc-clear:hover{background:var(--hover);color:var(--text)}
+.fc-count{font-size:12px;color:var(--t3);margin-left:auto}
+
+/* TABLE */
+.tbl-wrap{flex:1;overflow:auto;padding:0 0 40px}
+.tbl-wrap::-webkit-scrollbar{width:8px;height:8px}
+.tbl-wrap::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px}
+table{border-collapse:collapse;table-layout:fixed;min-width:100%}
+thead{position:sticky;top:0;z-index:20}
+th{background:var(--bg);border-bottom:1px solid var(--border);font-weight:400;text-align:left;padding:0;position:relative;user-select:none;white-space:nowrap;border-right:1px solid var(--border)}
+.th-in{display:flex;align-items:center;gap:4px;padding:6px 10px;cursor:pointer;color:var(--t3);font-size:12px;transition:background .1s}
+.th-in:hover{background:var(--hover)}
+.th-ic{font-size:11px;flex-shrink:0}
+.th-lbl{flex:1;overflow:hidden;text-overflow:ellipsis}
+.th-lbl-edit{border:none;outline:none;background:var(--bg);color:var(--text);font-family:var(--font);font-size:12px;font-weight:600;width:100%;min-width:40px;padding:1px 3px;border-radius:3px;box-shadow:0 0 0 2px var(--blue)}
+.sort-a{font-size:10px;flex-shrink:0;opacity:.4}
+.sort-a.on{opacity:1;color:var(--blue)}
+.resizer{position:absolute;right:0;top:0;bottom:0;width:4px;cursor:col-resize;z-index:2}
+.resizer{position:absolute;right:-4px;top:0;bottom:0;width:9px;cursor:col-resize;z-index:1;touch-action:none}
+.resizer::after{content:'';position:absolute;left:3px;top:0;bottom:0;width:3px;background:transparent;transition:background .15s}
+.resizer:hover::after,.resizer.act::after{background:var(--blue)}
+/* col drag styles */
+th.col-dragging{opacity:.4;background:var(--bg-hover,var(--hover))!important}
+th.col-drag-over-left{border-left:2px solid var(--blue)!important}
+th.col-drag-over-right{border-right:2px solid var(--blue)!important}
+.th-drag-handle{cursor:grab;padding:0 4px;color:var(--t4);font-size:12px;flex-shrink:0;line-height:1;user-select:none}
+.th-drag-handle:hover{color:var(--t2)}
+.th-drag-handle:active{cursor:grabbing}
+th:first-child,td:first-child{position:sticky;left:0;z-index:15;background:var(--bg)}
+thead th:first-child{z-index:25}
+tbody tr:hover td:first-child{background:var(--hover)}
+tbody tr{border-bottom:1px solid var(--border);cursor:pointer;transition:background .08s}
+tbody tr:hover{background:var(--hover)}
+td{padding:0 10px;height:var(--row-h);font-size:13px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:middle;border-right:1px solid var(--border)}
+th:last-child,td:last-child{border-right:none}
+
+/* title cell */
+.td-name{display:flex;align-items:center;gap:7px;overflow:hidden}
+.td-pg-ic{width:18px;height:18px;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--t3);font-size:13px}
+.td-nm-txt{flex:1;overflow:hidden;text-overflow:ellipsis;font-weight:500}
+.td-open{display:none;padding:2px 6px;border:1px solid var(--border2);border-radius:3px;font-size:11px;color:var(--t2);flex-shrink:0;cursor:pointer;white-space:nowrap}
+tbody tr:hover .td-open{display:block}
+
+/* BADGES */
+.badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:4px;font-size:12px;font-weight:500;white-space:nowrap;max-width:150px;overflow:hidden;text-overflow:ellipsis}
+.c0{background:#e9f5ec;color:#2d6a3f}   /* green */
+.c1{background:#dbeafe;color:#1e40af}   /* blue */
+.c2{background:#fce7f3;color:#9d174d}   /* pink */
+.c3{background:#fef3c7;color:#92400e}   /* yellow */
+.c4{background:#e0f2fe;color:#075985}   /* sky */
+.c5{background:#f3e8ff;color:#6b21a8}   /* purple */
+.c6{background:#fff7ed;color:#9a3412}   /* orange */
+.c7{background:#f1f5f9;color:#475569}   /* slate */
+.c8{background:#ecfdf5;color:#065f46}   /* emerald */
+.c9{background:#fdf2f8;color:#86198f}   /* fuchsia */
+.c10{background:#fffbeb;color:#78350f}  /* amber */
+.c11{background:#f0fdf4;color:#166534}  /* lime */
+.c12{background:#eff6ff;color:#1d4ed8}  /* indigo */
+.c13{background:#fef2f2;color:#991b1b}  /* red */
+.c14{background:#f5f5f4;color:#57534e}  /* stone */
+[data-theme=dark] .c0{background:rgba(45,106,63,.25);color:#6ee7b7}
+[data-theme=dark] .c1{background:rgba(30,64,175,.25);color:#93c5fd}
+[data-theme=dark] .c2{background:rgba(157,23,77,.25);color:#f9a8d4}
+[data-theme=dark] .c3{background:rgba(146,64,14,.25);color:#fcd34d}
+[data-theme=dark] .c4{background:rgba(7,89,133,.25);color:#7dd3fc}
+[data-theme=dark] .c5{background:rgba(107,33,168,.25);color:#d8b4fe}
+[data-theme=dark] .c6{background:rgba(154,52,18,.25);color:#fdba74}
+[data-theme=dark] .c7{background:rgba(71,85,105,.25);color:#cbd5e1}
+[data-theme=dark] .c8{background:rgba(6,95,70,.25);color:#6ee7b7}
+[data-theme=dark] .c9{background:rgba(134,25,143,.25);color:#f0abfc}
+[data-theme=dark] .c10{background:rgba(120,53,15,.25);color:#fcd34d}
+[data-theme=dark] .c11{background:rgba(22,101,52,.25);color:#bbf7d0}
+[data-theme=dark] .c12{background:rgba(29,78,216,.25);color:#a5b4fc}
+[data-theme=dark] .c13{background:rgba(153,27,27,.25);color:#fca5a5}
+[data-theme=dark] .c14{background:rgba(87,83,78,.25);color:#d6d3d1}
+
+/* checkbox */
+.cb{width:16px;height:16px;border:1.5px solid var(--border2);border-radius:3px;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;transition:all .1s;flex-shrink:0}
+.cb.chk{background:var(--blue);border-color:var(--blue)}
+.cb.chk::after{content:'✓';font-size:10px;color:#fff;font-weight:700;line-height:1}
+.dt{color:var(--t2);font-size:12px}
+.add-row{display:flex;align-items:center;gap:8px;padding:8px 10px;border-bottom:1px solid var(--border);color:var(--t3);font-size:13px;cursor:pointer;transition:background .1s}
+.add-row:hover{background:var(--hover);color:var(--t2)}
+
+/* ═══ OVERLAY & MODAL ═══ */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.32);z-index:500;display:flex;align-items:flex-start;justify-content:center;padding-top:50px;animation:fi .15s}
+[data-theme=dark] .overlay{background:rgba(0,0,0,.6)}
+.modal{background:var(--bg);border-radius:8px;box-shadow:var(--shadow);width:760px;max-height:82vh;overflow-y:auto;display:flex;flex-direction:column}
+.modal::-webkit-scrollbar{width:5px}
+.modal::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+.modal-top{padding:20px 24px 4px;display:flex;align-items:flex-start;justify-content:space-between;flex-shrink:0}
+.modal-title-input{font-size:22px;font-weight:700;border:none;background:none;outline:none;color:var(--text);font-family:var(--font);flex:1;padding:4px 0;resize:none;line-height:1.3}
+.modal-title-input::placeholder{color:var(--t4)}
+.modal-close-btn{width:26px;height:26px;border:none;background:none;color:var(--t2);font-size:17px;cursor:pointer;border-radius:4px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-left:8px;transition:all .1s}
+.modal-close-btn:hover{background:var(--hover);color:var(--text)}
+
+/* property rows */
+.prop-list{padding:8px 24px 16px;display:flex;flex-direction:column;gap:2px}
+.prop-row{display:flex;align-items:flex-start;min-height:34px;border-radius:4px;transition:background .1s}
+.prop-row:hover{background:var(--hover)}
+.prop-key{width:180px;min-width:180px;padding:6px 8px;font-size:13px;color:var(--t3);display:flex;align-items:center;gap:6px;cursor:default}
+.prop-key-lbl{cursor:default}
+.prop-key-editable .prop-key-lbl{cursor:pointer}
+.prop-key-editable .prop-key-lbl:hover{color:var(--text);text-decoration:underline dotted}
+.prop-key-ic{font-size:12px;opacity:.8}
+.prop-val{flex:1;padding:4px 8px;display:flex;align-items:center;flex-wrap:wrap;gap:4px;min-height:34px;cursor:pointer}
+.prop-val:hover .prop-placeholder{display:inline}
+.prop-placeholder{display:none;font-size:13px;color:var(--t4);font-style:italic}
+.prop-text-input{border:none;background:none;outline:none;font-family:var(--font);font-size:13px;color:var(--text);width:100%;padding:2px 0}
+.prop-text-input::placeholder{color:var(--t4)}
+.prop-date-input{border:none;background:none;outline:none;font-family:var(--font);font-size:13px;color:var(--text);width:100%}
+.prop-cb-wrap{display:flex;align-items:center;gap:8px;padding:2px 0}
+
+/* selected badge in prop */
+.sel-badge{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:4px;font-size:12px;font-weight:500;cursor:pointer}
+.sel-badge-x{font-size:11px;opacity:.6;line-height:1}
+.sel-badge-x:hover{opacity:1}
+
+/* divider */
+.prop-divider{height:1px;background:var(--border);margin:8px 0}
+
+/* modal actions */
+.modal-actions{padding:12px 24px;display:flex;justify-content:flex-end;gap:8px;flex-shrink:0;border-top:1px solid var(--border)}
+.ma-btn{padding:6px 14px;border-radius:4px;font-family:var(--font);font-size:13px;cursor:pointer;border:1px solid var(--border2);background:none;color:var(--t2);transition:all .1s}
+.ma-btn:hover{background:var(--hover)}
+.ma-btn.primary{background:var(--blue);color:#fff;border-color:var(--blue)}
+.ma-btn.primary:hover{opacity:.87}
+.ma-btn.danger{color:#c0392b;border-color:rgba(192,57,43,.3)}
+.ma-btn.danger:hover{background:rgba(192,57,43,.07)}
+
+/* ═══ SELECT PICKER PANEL ═══ */
+#picker-panel{
+  position:fixed;z-index:1000;
+  background:var(--bg);border-radius:8px;
+  box-shadow:var(--shadow);
+  width:320px;max-height:420px;
+  display:none;flex-direction:column;
+  animation:fi .12s;
+}
+.picker-head{padding:12px 14px 8px;flex-shrink:0}
+.picker-title{font-size:12px;font-weight:600;color:var(--t3);text-align:center;margin-bottom:10px;letter-spacing:.04em}
+.picker-selected-wrap{min-height:36px;border:1px solid var(--border2);border-radius:6px;padding:4px 8px;display:flex;flex-wrap:wrap;gap:4px;align-items:center;margin-bottom:6px;background:var(--bg)}
+.picker-search{width:100%;border:none;outline:none;background:none;font-family:var(--font);font-size:13px;color:var(--text);padding:2px 0}
+.picker-search::placeholder{color:var(--t4)}
+.picker-hint{font-size:11px;color:var(--t3);margin-bottom:4px}
+.picker-list{flex:1;overflow-y:auto;padding:4px 6px 8px}
+.picker-list::-webkit-scrollbar{width:4px}
+.picker-list::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+.picker-item{display:flex;align-items:center;gap:6px;padding:4px 6px;border-radius:4px;cursor:pointer;transition:background .1s;position:relative}
+.picker-item:hover{background:var(--hover)}
+.picker-item.selected{background:var(--sel)}
+.picker-item-check{font-size:12px;color:var(--blue);font-weight:600;opacity:0;flex-shrink:0}
+.picker-item.selected .picker-item-check{opacity:1}
+.picker-item-label{flex:1;overflow:hidden}
+.picker-item-actions{display:none;align-items:center;gap:2px;flex-shrink:0}
+.picker-item:hover .picker-item-actions{display:flex}
+.pi-act-btn{width:22px;height:22px;display:flex;align-items:center;justify-content:center;border-radius:3px;border:none;background:none;cursor:pointer;font-size:12px;color:var(--t3);transition:all .1s}
+.pi-act-btn:hover{background:var(--border2);color:var(--text)}
+/* color sub-panel */
+#color-panel{position:fixed;z-index:1100;background:var(--bg);border:1px solid var(--border2);border-radius:6px;padding:8px;box-shadow:var(--shadow2);display:none;flex-wrap:wrap;gap:5px;width:176px}
+.cp-swatch{width:20px;height:20px;border-radius:4px;cursor:pointer;border:2px solid transparent;transition:border-color .1s}
+.cp-swatch:hover,.cp-swatch.on{border-color:var(--blue)}
+/* rename inline */
+.picker-item-rename{border:none;outline:none;background:transparent;font-family:var(--font);font-size:12px;color:var(--text);flex:1;padding:0;min-width:60px}
+
+/* small modal */
+.smodal{width:480px}
+
+/* save chip */
+#savechip{position:fixed;bottom:16px;right:16px;padding:5px 12px;border-radius:5px;font-size:12px;background:var(--bg);border:1px solid var(--border);box-shadow:var(--shadow2);color:var(--t2);display:none;align-items:center;gap:5px;z-index:300}
+#savechip.show{display:flex}
+.sc-dot{width:5px;height:5px;border-radius:50%;background:var(--t3)}
+.sc-dot.sv{background:#0f7b55}
+.sc-dot.sg{background:#d08700;animation:pulse .8s infinite}
+
+/* user modal */
+.ulist{border:1px solid var(--border);border-radius:4px;overflow:hidden;margin-bottom:16px}
+.urow{display:flex;align-items:center;gap:10px;padding:9px 12px;border-bottom:1px solid var(--border)}
+.urow:last-child{border-bottom:none}
+.uav{width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,#a8d4f0,#c8a8f0);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:#37352f;flex-shrink:0}
+.unm{flex:1;font-size:13px}
+.urole-txt{font-size:11px;color:var(--t3)}
+.udel{padding:3px 8px;border-radius:3px;font-size:11px;color:var(--t3);cursor:pointer;border:1px solid transparent;background:none;font-family:var(--font);transition:all .1s}
+.udel:hover{border-color:#c0392b;color:#c0392b}
+
+@keyframes fi{from{opacity:0}to{opacity:1}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* ── CALENDAR POPUP ── */
+#cal-popup{
+  position:fixed;z-index:2000;background:var(--bg);border:1px solid var(--border2);
+  border-radius:8px;box-shadow:var(--shadow);width:300px;padding:12px;display:none;
+  animation:fi .12s;
+}
+.cp-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.cp-month-lbl{font-size:14px;font-weight:600;color:var(--text);cursor:pointer}
+.cp-nav{width:26px;height:26px;border:none;background:none;cursor:pointer;border-radius:4px;font-size:14px;color:var(--t2);display:flex;align-items:center;justify-content:center}
+.cp-nav:hover{background:var(--hover);color:var(--text)}
+.cp-dow{display:grid;grid-template-columns:repeat(7,1fr);margin-bottom:4px}
+.cp-dow-cell{text-align:center;font-size:11px;font-weight:600;color:var(--t3);padding:4px 0}
+.cp-days{display:grid;grid-template-columns:repeat(7,1fr);gap:1px}
+.cp-day{text-align:center;padding:5px 2px;font-size:13px;border-radius:4px;cursor:pointer;color:var(--text);transition:background .1s}
+.cp-day:hover{background:var(--hover)}
+.cp-day.today{color:var(--blue);font-weight:700}
+.cp-day.selected{background:var(--blue);color:#fff!important;font-weight:700}
+.cp-day.other-month{color:var(--t4)}
+.cp-day.sun{color:#e05a5a}
+.cp-day.sat{color:var(--blue)}
+.cp-day.selected.sun,.cp-day.selected.sat{color:#fff!important}
+.cp-time-row{display:flex;align-items:center;gap:8px;margin-top:10px;padding-top:10px;border-top:1px solid var(--border)}
+.cp-time-lbl{font-size:12px;color:var(--t3);white-space:nowrap}
+.cp-time-input{flex:1;padding:5px 8px;border:1px solid var(--border2);border-radius:4px;font-family:var(--font);font-size:13px;color:var(--text);background:var(--bg);outline:none;text-align:center}
+.cp-time-input:focus{border-color:var(--blue)}
+.cp-actions{display:flex;gap:6px;margin-top:8px}
+.cp-btn{flex:1;padding:6px;border-radius:4px;border:1px solid var(--border2);background:none;font-family:var(--font);font-size:12px;cursor:pointer;color:var(--t2);transition:all .1s}
+.cp-btn:hover{background:var(--hover)}
+.cp-btn.primary{background:var(--blue);color:#fff;border-color:var(--blue)}
+.cp-btn.primary:hover{opacity:.85}
+.date-field-wrap{display:flex;align-items:center;gap:6px;width:100%}
+.date-field-input{flex:1;border:none;background:none;outline:none;font-family:var(--font);font-size:13px;color:var(--text);cursor:pointer;padding:2px 0}
+.date-field-input:hover{color:var(--blue)}
+.date-field-clear{font-size:14px;color:var(--t4);cursor:pointer;transition:color .1s;border:none;background:none;padding:0;line-height:1;flex-shrink:0}
+.date-field-clear:hover{color:var(--text)}
+
+/* ── SHIP ICON ── */
+.ship-icon-wrap{display:flex;align-items:center;gap:10px;margin-bottom:12px;padding:8px 0}
+.ship-icon-img{width:56px;height:56px;border-radius:8px;object-fit:cover;border:1px solid var(--border2);cursor:pointer;transition:opacity .15s}
+.ship-icon-img:hover{opacity:.8}
+.ship-icon-placeholder{width:56px;height:56px;border-radius:8px;border:2px dashed var(--border2);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:22px;color:var(--t4);transition:all .15s;flex-shrink:0}
+.ship-icon-placeholder:hover{border-color:var(--blue);color:var(--blue)}
+.ship-icon-info{font-size:11px;color:var(--t3);line-height:1.6}
+.ship-icon-info b{color:var(--t2);font-weight:500}
+.icon-upload-input{display:none}
+
+/* ── SUISENIN SUBTABLE ── */
+.subtable-section{margin-top:16px;padding-top:14px;border-top:2px solid var(--border2)}
+.subtable-title{font-size:14px;font-weight:600;color:var(--text);margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.subtable-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:6px;margin-bottom:8px}
+.subtable{border-collapse:collapse;width:100%;min-width:500px}
+.subtable th{background:var(--bg2);padding:7px 10px;font-size:11px;font-weight:600;color:var(--t3);letter-spacing:.05em;text-transform:uppercase;border-bottom:1px solid var(--border);text-align:left;white-space:nowrap}
+.subtable td{padding:7px 10px;font-size:13px;border-bottom:1px solid var(--border);vertical-align:middle}
+.subtable tr:last-child td{border-bottom:none}
+.subtable tr:hover td{background:var(--hover)}
+.subtable-input{border:none;background:none;outline:none;font-family:var(--font);font-size:13px;color:var(--text);width:100%;min-width:60px}
+.subtable-del{border:none;background:none;cursor:pointer;color:var(--t4);font-size:14px;padding:2px 4px;border-radius:3px;transition:all .1s}
+.subtable-del:hover{color:#c0392b;background:rgba(192,57,43,.08)}
+.subtable-add-row{display:flex;align-items:center;gap:6px;padding:6px 8px;font-size:12px;color:var(--t3);cursor:pointer;border-radius:4px;transition:background .1s;border:none;background:none;font-family:var(--font)}
+.subtable-add-row:hover{background:var(--hover);color:var(--text)}
+.sui-cell-pick{min-width:80px;padding:3px 6px;border-radius:4px;cursor:pointer;transition:background .1s;display:flex;align-items:center;gap:4px}
+.sui-cell-pick:hover{background:var(--hover)}
+.sui-pick-placeholder{font-size:12px;color:var(--t4)}
+.subtable-sel{border:none;background:var(--bg2);color:var(--text);font-family:var(--font);font-size:13px;padding:3px 6px;border-radius:4px;cursor:pointer;outline:none;width:100%;min-width:80px}
+.subtable-sel:hover{background:var(--hover)}
+.subtable-sel:focus{box-shadow:0 0 0 2px var(--blue-bg)}
+
+/* ── MANUAL LINK ── */
+.sb-manual{display:flex;align-items:center;gap:7px;padding:4px 8px;border-radius:4px;cursor:pointer;color:var(--t2);font-size:13px;transition:background .1s;text-decoration:none}
+.sb-manual:hover{background:var(--hover);color:var(--text)}
+</style>
+<!-- Firebase: SDK不要のREST API方式で接続 -->
+<style>
+/* Firebase設定バナー */
+#fb-setup{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px}
+#fb-setup-box{background:#fff;border-radius:12px;padding:28px 28px 24px;width:100%;max-width:480px;box-shadow:0 8px 40px rgba(0,0,0,.3);font-family:var(--font)}
+#fb-setup-box h2{font-size:18px;font-weight:700;margin-bottom:6px;color:#37352f}
+#fb-setup-box p{font-size:13px;color:#666;margin-bottom:16px;line-height:1.6}
+#fb-setup-box label{font-size:12px;font-weight:600;color:#888;display:block;margin-bottom:4px;margin-top:12px}
+#fb-setup-box input{width:100%;padding:9px 12px;border:1.5px solid #e0e0e0;border-radius:6px;font-family:var(--font);font-size:13px;outline:none;box-sizing:border-box}
+#fb-setup-box input:focus{border-color:#2383e2}
+.fb-btn{width:100%;margin-top:16px;padding:11px;border-radius:6px;border:none;background:#2383e2;color:#fff;font-family:var(--font);font-size:14px;font-weight:600;cursor:pointer}
+.fb-btn:hover{opacity:.88}
+.fb-skip{display:block;text-align:center;margin-top:10px;font-size:12px;color:#aaa;cursor:pointer;text-decoration:underline}
+.fb-step{font-size:11px;background:#f0f4ff;border-radius:6px;padding:10px 12px;margin-bottom:14px;line-height:1.8;color:#1a4a8a}
+.fb-step code{background:#dbeafe;padding:1px 5px;border-radius:3px;font-size:11px}
+/* 同期インジケーター */
+#fb-indicator{position:fixed;top:8px;right:8px;z-index:500;font-size:11px;padding:3px 10px;border-radius:12px;font-family:var(--font);font-weight:600;transition:all .3s;pointer-events:none;opacity:0}
+#fb-indicator.show{opacity:1}
+#fb-indicator.sync{background:#e6f7f1;color:#0f7b55}
+#fb-indicator.err{background:#fdecea;color:#c0392b}
+#fb-indicator.off{background:#f0f0ef;color:#999}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login">
+  <div class="lbox">
+    <div class="llogo"><div class="llogo-n">外</div><div class="llogo-t">外航船 動静管理</div></div>
+    <div class="lh1">ログイン</div>
+    <div class="lsub">承認されたメンバーのみアクセスできます</div>
+    <label class="llabel">ユーザー名</label>
+    <input class="linput" id="ln" type="text" placeholder="ユーザー名" autocomplete="username">
+    <label class="llabel">パスワード</label>
+    <input class="linput" id="lp" type="password" placeholder="パスワード">
+    <button class="lbtn" onclick="doLogin()">ログイン</button>
+    <div class="lerr" id="lerr">ユーザー名またはパスワードが正しくありません</div>
+  </div>
+</div>
+
+<!-- Firebase設定モーダル（初回のみ） -->
+<div id="fb-setup" style="display:none">
+  <div id="fb-setup-box">
+    <h2>🔥 Firebase 接続設定</h2>
+    <p>データをリアルタイムで複数ユーザーと共有するために、FirebaseプロジェクトのURLを設定してください。</p>
+    <div class="fb-step">
+      <b>設定手順：</b><br>
+      1. <a href="https://console.firebase.google.com" target="_blank" style="color:#1a4a8a">Firebase Console</a> でプロジェクト作成<br>
+      2. 「構築」→「Realtime Database」→「データベースを作成」<br>
+      3. <b>テストモードで開始</b>を選択（重要）<br>
+      4. データベースURLをコピー<br>
+      　例: <code>https://xxx-default-rtdb.firebaseio.com</code>
+    </div>
+    <label>Firebase Database URL</label>
+    <input id="fb-url-input" type="url" placeholder="https://your-project-default-rtdb.firebaseio.com">
+    <button class="fb-btn" onclick="initFirebase()">接続して共有開始</button>
+    <span class="fb-skip" onclick="skipFirebase()">スキップ（ローカル保存のみで使用）</span>
+  </div>
+</div>
+
+<!-- 同期インジケーター -->
+<div id="fb-indicator"></div>
+
+<!-- APP -->
+<div id="app">
+  <div id="sb">
+    <div class="sb-top">
+      <div class="sb-ws" onclick="showUserModal()">
+        <div class="ws-ico" id="ws-ico">外</div>
+        <div class="ws-nm">外航船管理</div>
+        <span style="font-size:10px;color:var(--t3)">⇅</span>
+      </div>
+      <div class="sb-act" onclick="doSearch()"><div class="sb-act-ic">🔍</div>検索 <span style="margin-left:auto;font-size:11px;color:var(--t3)">⌘K</span></div>
+      <div class="sb-act" onclick="toggleDark()"><div class="sb-act-ic" id="dark-ic">🌙</div><span id="dark-lbl">ダークモード</span></div>
+      <div class="sb-act" onclick="showManualModal()"><div class="sb-act-ic">📖</div><span>利用マニュアル</span></div>
+      <div class="sb-act" onclick="showFbSettingsModal()"><div class="sb-act-ic">🔥</div><span>Firebase設定</span></div>
+      <div class="sb-div"></div>
+      <div class="sb-sec">プライベート <span class="sb-add" onclick="showNewRowModal()">+</span></div>
+    </div>
+    <div id="ptree">
+      <div class="ti act" id="sb-gaiko" onclick="switchDB('gaiko')">
+        <div class="ti-ic">🚢</div>
+        <div class="ti-nm">外航船 動静一覧</div>
+      </div>
+      <div class="ti" id="sb-container" onclick="switchDB('container')">
+        <div class="ti-ic">📦</div>
+        <div class="ti-nm">外航コンテナ船 動静表</div>
+      </div>
+    </div>
+    <div class="sb-bot">
+      <div class="sb-bot-r" onclick="showUserModal()"><span>👤</span><span id="sb-unm">—</span><span style="margin-left:auto;font-size:11px;color:var(--t3)">管理</span></div>
+      <div class="sb-bot-r" onclick="doLogout()"><span>🚪</span><span>ログアウト</span></div>
+    </div>
+  </div>
+
+  <div id="main">
+    <div id="tnav">
+      <button id="sb-toggle" onclick="toggleSidebar()" title="サイドバー">☰</button>
+      <div class="bc" id="bc"><span>🚢 外航船 動静一覧</span></div>
+      <div class="tnav-r">
+        <button class="tnav-btn" onclick="toggleDark()" id="dark-btn">🌙</button>
+        <button class="tnav-btn" onclick="doSearch()">🔍</button>
+        <div class="avatar" id="top-av" onclick="showUserModal()">A</div>
+      </div>
+    </div>
+
+    <div id="dbview">
+      <div class="db-title-area"><div class="db-h1" id="db-main-title">外航船 動静一覧</div></div>
+      <div class="db-toolbar">
+        <div class="db-left" id="db-view-tabs">
+          <button class="db-view-btn" id="vbtn-table" onclick="setViewMode('table')">⊞ テーブル</button>
+          <button class="db-view-btn" id="vbtn-cal" onclick="setViewMode('calendar')" style="display:none">📅 カレンダー</button>
+        </div>
+        <div class="db-right">
+          <button class="db-ico-btn" onclick="doSearch()">🔍</button>
+          <button class="db-ico-btn" title="列順をリセット" onclick="resetColOrder(currentDB)">↺</button>
+          <button class="db-ico-btn">≡</button>
+          <button class="db-ico-btn">⇅</button>
+          <div class="db-new-btn">
+            <button class="db-new-main" id="new-row-btn" onclick="showNewRowModal()">＋ 新規</button>
+            <button class="db-new-dd">∨</button>
+          </div>
+        </div>
+      </div>
+      <div class="db-filters">
+        <div class="fc">🔍 <input id="f-name" placeholder="船名で検索…" oninput="onFilterChange()"></div>
+        <div class="fc" id="f-tanto-wrap">👤 担当者
+          <select id="f-tanto" onchange="onFilterChange()"><option value="">全員</option></select>
+        </div>
+        <div class="fc" id="f-niyaku-wrap">📦 貨物名
+          <select id="f-niyaku" onchange="onFilterChange()"><option value="">すべて</option></select>
+        </div>
+        <div class="fc" id="f-schedule-wrap" style="display:none">📋 スケジュール
+          <select id="f-schedule" onchange="onFilterChange()"><option value="">すべて</option></select>
+        </div>
+        <button class="fc-clear" onclick="clearFilters()">リセット</button>
+        <span class="fc-count" id="fc-cnt"></span>
+      </div>
+      <!-- TABLE VIEW -->
+      <div class="tbl-wrap" id="tbl-wrap-main">
+        <table id="tbl"><thead id="thead"></thead><tbody id="tbody"></tbody></table>
+        <div class="add-row" onclick="showNewRowModal()"><span style="font-size:15px">+</span> 新規</div>
+      </div>
+      <!-- CALENDAR VIEW -->
+      <div id="cal-view" style="display:none;flex:1;overflow:auto;padding:8px 20px 40px;flex-direction:column">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-shrink:0">
+          <button onclick="calMove(-1)" style="padding:4px 12px;border:1px solid var(--border2);border-radius:4px;background:none;cursor:pointer;font-family:var(--font);font-size:13px;color:var(--t2)">‹</button>
+          <span id="cal-month-label" style="font-size:15px;font-weight:600;color:var(--text);min-width:130px;text-align:center"></span>
+          <button onclick="calMove(1)" style="padding:4px 12px;border:1px solid var(--border2);border-radius:4px;background:none;cursor:pointer;font-family:var(--font);font-size:13px;color:var(--t2)">›</button>
+          <button onclick="calToday()" style="padding:4px 10px;border:1px solid var(--border2);border-radius:4px;background:none;cursor:pointer;font-family:var(--font);font-size:12px;color:var(--t2)">今月</button>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:1px;background:var(--border);flex-shrink:0">
+          <div style="background:var(--bg2);padding:6px;text-align:center;font-size:11px;font-weight:600;color:var(--red,#e05a5a)">日</div>
+          <div style="background:var(--bg2);padding:6px;text-align:center;font-size:11px;font-weight:600;color:var(--t3)">月</div>
+          <div style="background:var(--bg2);padding:6px;text-align:center;font-size:11px;font-weight:600;color:var(--t3)">火</div>
+          <div style="background:var(--bg2);padding:6px;text-align:center;font-size:11px;font-weight:600;color:var(--t3)">水</div>
+          <div style="background:var(--bg2);padding:6px;text-align:center;font-size:11px;font-weight:600;color:var(--t3)">木</div>
+          <div style="background:var(--bg2);padding:6px;text-align:center;font-size:11px;font-weight:600;color:var(--t3)">金</div>
+          <div style="background:var(--bg2);padding:6px;text-align:center;font-size:11px;font-weight:600;color:var(--blue)">土</div>
+        </div>
+        <div id="cal-body" style="display:grid;grid-template-columns:repeat(7,1fr);gap:1px;background:var(--border);flex:1"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PICKER PANEL -->
+<div id="picker-panel">
+  <div class="picker-head">
+    <div class="picker-title" id="picker-title">選択</div>
+    <div class="picker-selected-wrap" id="picker-selected-wrap">
+      <input class="picker-search" id="picker-search" placeholder="検索または作成…" oninput="filterPickerItems()">
+    </div>
+    <div class="picker-hint" id="picker-hint"></div>
+  </div>
+  <div class="picker-list" id="picker-list"></div>
+</div>
+
+<div id="color-panel"></div>
+<div id="cal-popup">
+  <div class="cp-header">
+    <button class="cp-nav" id="cp-prev">‹</button>
+    <span class="cp-month-lbl" id="cp-month"></span>
+    <button class="cp-nav" id="cp-next">›</button>
+  </div>
+  <div class="cp-dow">
+    <div class="cp-dow-cell" style="color:#e05a5a">日</div>
+    <div class="cp-dow-cell">月</div><div class="cp-dow-cell">火</div>
+    <div class="cp-dow-cell">水</div><div class="cp-dow-cell">木</div>
+    <div class="cp-dow-cell">金</div>
+    <div class="cp-dow-cell" style="color:var(--blue)">土</div>
+  </div>
+  <div class="cp-days" id="cp-days"></div>
+  <div class="cp-time-row" id="cp-time-row">
+    <span class="cp-time-lbl">🕐 時刻</span>
+    <input class="cp-time-input" id="cp-time" type="time" value="09:00">
+  </div>
+  <div class="cp-actions">
+    <button class="cp-btn" onclick="calPopupClear()">クリア</button>
+    <button class="cp-btn" onclick="calPopupToday()">今日</button>
+    <button class="cp-btn primary" onclick="calPopupConfirm()">確定</button>
+  </div>
+</div>
+<div id="savechip"><div class="sc-dot" id="scdot"></div><span id="sclbl">保存済み</span></div>
+
+<script>
+/* ════════════════════════════════════════
+   OPTION DEFINITIONS
+════════════════════════════════════════ */
+const DEFAULT_OPTIONS = {
+  cargo: [
+    {v:'1 石炭',    c:'c7'},{v:'2 原塩',    c:'c2'},{v:'3 VCM',    c:'c0'},
+    {v:'4 MDI',     c:'c0'},{v:'5 液アン',  c:'c0'},{v:'6 エチレン',c:'c0'},
+    {v:'7 ベンゼン',c:'c0'},{v:'8 アニリン',c:'c0'},{v:'9 セメント',c:'c3'},
+    {v:'木質ペレット',c:'c4'},{v:'10 カレット',c:'c3'},{v:'11 液体苛性',c:'c3'},
+    {v:'12 EDC',    c:'c3'},{v:'13 硅石',   c:'c3'},{v:'14 コークス',c:'c7'},
+    {v:'15 石膏',   c:'c3'},{v:'その他',    c:'c14'},
+  ],
+  tanto: [
+    {v:'小河原 喬', c:'c7'},{v:'家永 寛基', c:'c7'},{v:'吉本 俊一', c:'c7'},
+    {v:'周防 征義', c:'c7'},{v:'福永 尚弥', c:'c7'},{v:'高村有翔',  c:'c7'},
+    {v:'間崎 健',   c:'c7'},
+  ],
+  berth: [
+    {v:'原塩',       c:'c2'},{v:'南-1号',   c:'c0'},{v:'南-2号',    c:'c0'},
+    {v:'南-3号',     c:'c0'},{v:'南-未定',  c:'c0'},{v:'雑貨-1号',  c:'c3'},
+    {v:'晴海-7岸',   c:'c2'},{v:'セメント-2号',c:'c3'},{v:'原石-2号',c:'c3'},
+    {v:'東-4号',     c:'c2'},{v:'日化（トクヤマ）',c:'c9'},{v:'N6（-10m）',c:'c14'},
+    {v:'N6（-12m）', c:'c4'},{v:'その他',   c:'c14'},
+  ],
+  niyaku: [
+    {v:'未定', c:'c14'},{v:'予定', c:'c1'},{v:'確定', c:'c2'},{v:'終了', c:'c7'},
+  ],
+  tomari: [
+    {v:'直行着桟',  c:'c14'},{v:'検疫錨地',  c:'c3'},{v:'晴海西',   c:'c8'},
+    {v:'仙島東-1',  c:'c8'}, {v:'仙島東-2',  c:'c8'},{v:'仙島東-3', c:'c8'},
+    {v:'仙島東-4',  c:'c8'}, {v:'仙島東-5',  c:'c8'},{v:'仙島東-6', c:'c8'},
+    {v:'仙島東-7',  c:'c8'}, {v:'仙島東-8',  c:'c8'},{v:'仙島東-9', c:'c8'},
+    {v:'仙島東-10', c:'c8'}, {v:'仙島東-11', c:'c8'},{v:'大浦西-4', c:'c3'},
+    {v:'大浦西-5',  c:'c3'}, {v:'大浦西-6',  c:'c3'},{v:'その他',   c:'c14'},
+  ],
+  upd_by: [
+    {v:'小河原 喬', c:'c7'},{v:'家永 寛基', c:'c7'},{v:'吉本 俊一', c:'c7'},
+    {v:'周防 征義', c:'c7'},{v:'福永 尚弥', c:'c7'},{v:'高村有翔',  c:'c7'},
+    {v:'間崎 健',   c:'c7'},
+  ],
+  suisenin_time: [
+    {v:'入港時', c:'c1'},{v:'出港時', c:'c2'},
+  ],
+  suisenin_type: [
+    {v:'湾内',  c:'c0'},{v:'沖出し', c:'c0'},{v:'沖乗り', c:'c0'},{v:'湾外',  c:'c0'},
+  ],
+  noriba: [
+    {v:'徳山錨地',  c:'c0'},{v:'富田2号浮', c:'c0'},{v:'晴海沖',   c:'c0'},
+    {v:'仙島東錨地',c:'c0'},{v:'直行',      c:'c14'},{v:'その他',   c:'c14'},
+  ],
+  hikifune: [
+    {v:'1隻', c:'c2'},{v:'2隻', c:'c3'},{v:'3隻', c:'c2'},{v:'4隻', c:'c5'},
+    {v:'なし',c:'c14'},
+  ],
+  sui_time: [
+    {v:'入港時',c:'c1'},{v:'出港時',c:'c2'},{v:'入港・出港時',c:'c4'},{v:'なし',c:'c14'},
+  ],
+  sui_type: [
+    {v:'湾内',c:'c0'},{v:'沖乗り',c:'c0'},{v:'沖出し',c:'c0'},{v:'湾外',c:'c0'},
+  ],
+};
+let OPTIONS = JSON.parse(localStorage.getItem('gs2_opts')||'null') || JSON.parse(JSON.stringify(DEFAULT_OPTIONS));
+/* 新しく追加されたキーが古いlocalStorageデータにない場合に自動補完 */
+(function(){
+  var needSave = false;
+  Object.keys(DEFAULT_OPTIONS).forEach(function(k){
+    if(!OPTIONS[k]){OPTIONS[k]=JSON.parse(JSON.stringify(DEFAULT_OPTIONS[k]));needSave=true;}
+  });
+  if(needSave) localStorage.setItem('gs2_opts',JSON.stringify(OPTIONS));
+})();
+/* saveOptions: Firebase連携セクションで定義 */
+
+/* single-select fields */
+const SINGLE_SELECT = new Set(['niyaku','upd_by','berth','tanto','cargo','tomari']);
+
+function getOpts(field){ return OPTIONS[field]||[]; }
+function getColor(field,val){
+  const opt=getOpts(field).find(o=>o.v===val);
+  return opt?opt.c:'c14';
+}
+
+/* ════════════════════════════════════════
+   COLUMN DEFINITIONS
+════════════════════════════════════════ */
+const COLS_DEF = [
+  {key:'name',     label:'船名/Voy NO.',       icon:'Aa', w:280, sort:true,  type:'title'},
+  {key:'eta',      label:'ETA',                icon:'📅', w:160, sort:true,  type:'date'},
+  {key:'etb',      label:'ETB',                icon:'📅', w:160, sort:true,  type:'date'},
+  {key:'etd',      label:'ETD',                icon:'📅', w:160, sort:true,  type:'date'},
+  {key:'cargo',    label:'貨物名',             icon:'📍', w:130, sort:true,  type:'select'},
+  {key:'tanto',    label:'担当者',             icon:'📍', w:110, sort:true,  type:'select'},
+  {key:'berth',    label:'桟橋名',             icon:'≡',  w:150, sort:true,  type:'select'},
+  {key:'niyaku',   label:'荷役予定',           icon:'📍', w:90,  sort:true,  type:'select'},
+  {key:'tomari',   label:'停泊錨地',           icon:'📍', w:130, sort:true,  type:'select'},
+  {key:'maeko',    label:'前港',               icon:'≡',  w:120, sort:true,  type:'text'},
+  {key:'tsugiko',  label:'次港',               icon:'≡',  w:120, sort:true,  type:'text'},
+  {key:'isps',     label:'ISPS・船舶保安情報', icon:'☑',  w:170, sort:false, type:'check'},
+  {key:'rpm',      label:'RPM-無線検疫',       icon:'☑',  w:140, sort:false, type:'check'},
+  {key:'naccs_zen',label:'入港前統一申請NACCS',icon:'☑',  w:190, sort:false, type:'check'},
+  {key:'naccs_nyuko',label:'入港届NACCS',      icon:'☑',  w:130, sort:false, type:'check'},
+  {key:'tons_zei', label:'とん税納付',         icon:'☑',  w:110, sort:false, type:'check'},
+  {key:'tons_exp', label:'年間とん税有効期限', icon:'📅', w:160, sort:true,  type:'date'},
+  {key:'ssec_exp', label:'SSEC有効期限',       icon:'📅', w:140, sort:true,  type:'date'},
+  {key:'upd_at',   label:'情報最終更新日時',   icon:'📅', w:160, sort:true,  type:'date'},
+  {key:'upd_by',   label:'情報更新者',         icon:'📍', w:110, sort:true,  type:'select'},
+  {key:'biko',     label:'備考',               icon:'Aa', w:200, sort:true,  type:'text'},
+];
+/* Restore saved column order, keeping all defs */
+function buildOrderedCols(defArr, storageKey){
+  var savedOrder = JSON.parse(localStorage.getItem(storageKey)||'null');
+  if(!savedOrder) return defArr.slice();
+  var map = {};
+  defArr.forEach(function(c){ map[c.key]=c; });
+  var ordered = savedOrder.filter(function(k){return map[k];}).map(function(k){return map[k];});
+  defArr.forEach(function(c){ if(savedOrder.indexOf(c.key)<0) ordered.push(c); });
+  return ordered;
+}
+function makeWidthMap(arr){
+  var o={};arr.forEach(function(c){o[c.key]=c.w;});return o;
+}
+let COLS = buildOrderedCols(COLS_DEF, 'gs2_col_order');
+let colW = JSON.parse(localStorage.getItem('gs2_colw')||'null') || makeWidthMap(COLS_DEF);
+const saveColW   = () => localStorage.setItem('gs2_colw', JSON.stringify(colW));
+const saveColOrder = () => localStorage.setItem('gs2_col_order', JSON.stringify(COLS.map(c=>c.key)));
+
+/* カスタム列ラベル（ダブルクリックで編集） */
+let colLabels  = JSON.parse(localStorage.getItem('gs2_col_labels') ||'null') || {};
+let cColLabels = JSON.parse(localStorage.getItem('gs2_ccol_labels')||'null') || {};
+const saveColLabels  = () => localStorage.setItem('gs2_col_labels',  JSON.stringify(colLabels));
+const saveCColLabels = () => localStorage.setItem('gs2_ccol_labels', JSON.stringify(cColLabels));
+function getColLabel(key, db){
+  const labels = db==='gaiko' ? colLabels : cColLabels;
+  if(labels[key]) return labels[key];
+  const def = db==='gaiko'
+    ? COLS_DEF.find(c=>c.key===key)
+    : CONTAINER_COLS_DEF.find(c=>c.key===key);
+  return (def ? def.label : key) || key;
+}
+
+/* ── プロパティラベル カスタム名称（詳細モーダル用） ── */
+let propLabels = JSON.parse(localStorage.getItem('gs2_prop_labels')||'null') || {};
+const savePropLabels = () => localStorage.setItem('gs2_prop_labels', JSON.stringify(propLabels));
+function getPropLabel(key, defaultLabel){
+  return propLabels[key] || defaultLabel;
+}
+/* プロパティキー要素を生成（ダブルタップで名称編集） */
+function makePropKeyEl(ic, key, defaultLabel){
+  var div = document.createElement('div');
+  div.className = 'prop-key';
+  var icEl = document.createElement('span');
+  icEl.className = 'prop-key-ic';
+  icEl.textContent = ic;
+  div.appendChild(icEl);
+  var span = document.createElement('span');
+  span.className = 'prop-key-lbl';
+  span.textContent = getPropLabel(key, defaultLabel);
+  span.title = 'ダブルタップで項目名を変更';
+  span.style.cursor = 'pointer';
+  addDoubleTap(span, function(){
+    var cur = span.textContent;
+    var inp = document.createElement('input');
+    inp.value = cur;
+    inp.style.cssText = 'border:none;outline:none;background:transparent;font-family:var(--font);font-size:13px;color:var(--text);max-width:160px;border-bottom:1px solid var(--blue);padding:0';
+    inp.addEventListener('click', function(e){ e.stopPropagation(); });
+    inp.addEventListener('touchstart', function(e){ e.stopPropagation(); });
+    span.replaceWith(inp);
+    inp.focus(); inp.select();
+    var committed = false;
+    var commit = function(){
+      if(committed) return; committed = true;
+      var v = inp.value.trim();
+      if(v && v !== cur){ propLabels[key]=v; savePropLabels(); }
+      else if(!v){ delete propLabels[key]; savePropLabels(); }
+      inp.replaceWith(span);
+      span.textContent = getPropLabel(key, defaultLabel);
+    };
+    inp.addEventListener('blur', commit);
+    inp.addEventListener('keydown', function(e2){
+      e2.stopPropagation();
+      if(e2.key==='Enter'){ inp.blur(); }
+      if(e2.key==='Escape'){
+        committed = true;
+        inp.replaceWith(span);
+      }
+    });
+  });
+  div.appendChild(span);
+  return div;
+}
+
+/* ════════════════════════════════════════
+   DATA
+════════════════════════════════════════ */
+let users = JSON.parse(localStorage.getItem('gs2_users')||'null') || [
+  {id:'u1',name:'admin',  pass:'admin123',role:'admin'},
+  {id:'u2',name:'editor1',pass:'pass1',   role:'editor'},
+  {id:'u3',name:'viewer1',pass:'view1',   role:'viewer'},
+];
+let rows = JSON.parse(localStorage.getItem('gs2_rows')||'null') || [
+  {id:'r1',name:'DL LOTUS V0726',     eta:'2026/03/16 8:06', etb:'2026/03/17 10:15',etd:'2026/03/18 15:00',cargo:'6 エチレン',tanto:'間崎 健',  berth:'南-1号',  niyaku:'確定',tomari:'大浦西-6', maeko:'ULSAN',    tsugiko:'',        isps:true, rpm:false,naccs_zen:true, naccs_nyuko:false,tons_zei:true, tons_exp:'2025/05/29',ssec_exp:'2025/07/12',upd_at:'2026/03/03 15:00',upd_by:'間崎 健',  biko:'船会社: INCHCAPE', suisenin_time:'入港時',  noriba:'徳山錨地',  hikifune:'3隻'},
+  {id:'r2',name:'KAIYO V-164A',       eta:'2026/03/03 4:00', etb:'2026/03/03 13:00',etd:'2026/03/06 8:00', cargo:'1 石炭',  tanto:'小河原 喬',berth:'N6（-12m）',niyaku:'確定',tomari:'検疫錨地',maeko:'NEWCASTLE',tsugiko:'NEWCASTLE',isps:false,rpm:false,naccs_zen:false,naccs_nyuko:true, tons_zei:true, tons_exp:'',        ssec_exp:'',        upd_at:'',          upd_by:'家永 寛基',biko:'着桟方向：入船右舷', hikifune:'2隻'},
+  {id:'r3',name:'AZALEA CORAL V-14',  eta:'2026/03/13 0:48', etb:'2026/03/17 11:11',etd:'2026/03/18 17:30',cargo:'3 VCM',  tanto:'間崎 健',  berth:'南-2号',  niyaku:'確定',tomari:'大浦西-4', maeko:'MERAK',    tsugiko:'',        isps:true, rpm:false,naccs_zen:true, naccs_nyuko:false,tons_zei:false,tons_exp:'2026/05/19',ssec_exp:'2026/04/16',upd_at:'2026/03/03 15:00',upd_by:'間崎 健',  biko:'',             suisenin_time:'',      suisenin_type:'',      noriba:'',          hikifune:''},
+  {id:'r4',name:'ORIENTAL DAWN V-104',eta:'2026/03/10 0:24', etb:'',              etd:'',              cargo:'3 VCM',  tanto:'間崎 健',  berth:'南-未定', niyaku:'不定',tomari:'仙島東-11',maeko:'BATAAN',   tsugiko:'',        isps:false,rpm:false,naccs_zen:false,naccs_nyuko:false,tons_zei:false,tons_exp:'2026/10/16',ssec_exp:'2026/02/25',upd_at:'',          upd_by:'間崎 健',  biko:'BM乗船：着桟時 無', suisenin_time:'',      suisenin_type:'',      noriba:'',          hikifune:''},
+];
+let cu = JSON.parse(sessionStorage.getItem('gs2_cu')||'null');
+let sort = {col:'eta',dir:'asc'};
+let isGuest = false; // viewer role read-only mode
+/* saveUsers / saveRows は Firebase連携セクションで定義 */
+
+/* ════════════════════════════════════════
+   VIEWER MODE (閲覧専用)
+════════════════════════════════════════ */
+function startViewerMode(){
+  isGuest=true;
+  const loginEl=document.getElementById('login');if(loginEl)loginEl.style.display='none';
+  const appEl=document.getElementById('app');if(appEl)appEl.classList.add('show');
+  const tnavEl=document.getElementById('tnav');if(tnavEl)tnavEl.style.display='flex';
+  const ini=((cu ? cu.name : 'V')).charAt(0).toUpperCase();
+  const wsEl=document.getElementById('ws-ico');if(wsEl)wsEl.textContent=ini;
+  const unmEl=document.getElementById('sb-unm');if(unmEl)unmEl.textContent=(cu ? cu.name : '閲覧者');
+  const avEl=document.getElementById('top-av');if(avEl)avEl.textContent=ini;
+  applyDark(localStorage.getItem('gs2_dark')==='1');
+  if(localStorage.getItem('gs2_sb')==='0'){
+    const sbEl=document.getElementById('sb');if(sbEl)sbEl.classList.add('collapsed');
+    const stEl=document.getElementById('sb-toggle');if(stEl)stEl.textContent='▶';
+  }
+  switchDB('gaiko');
+  const banner=document.createElement('div');
+  banner.style.cssText='position:fixed;bottom:0;left:0;right:0;background:#0f7b55;color:#fff;font-size:12px;padding:6px 16px;z-index:200;font-family:var(--font)';
+  banner.textContent='👁 閲覧専用モード — ログイン中: '+((cu ? cu.name : ''))+'（閲覧者）';
+  document.body.appendChild(banner);
+}
+
+
+
+/* ════════════════════════════════════════
+   SIDEBAR TOGGLE
+════════════════════════════════════════ */
+function toggleSidebar(){
+  const sb=document.getElementById('sb');
+  const btn=document.getElementById('sb-toggle');
+  const collapsed=sb.classList.toggle('collapsed');
+  btn.textContent=collapsed?'▶':'☰';
+  btn.title=collapsed?'サイドバーを開く':'サイドバーを閉じる';
+  localStorage.setItem('gs2_sb',collapsed?'0':'1');
+}
+
+/* ════════════════════════════════════════
+   AUTH
+════════════════════════════════════════ */
+function doLogin(){
+  const n=document.getElementById('ln').value.trim();
+  const p=document.getElementById('lp').value;
+  const u=users.find(u=>u.name===n&&u.pass===p);
+  if(u){
+    cu=u;sessionStorage.setItem('gs2_cu',JSON.stringify(u));
+    document.getElementById('login').style.display='none';
+    if(u.role==='viewer'){
+      // 閲覧者ロールはゲストモードで起動
+      startViewerMode();
+    } else {
+      startApp();
+    }
+  } else {
+    document.getElementById('lerr').style.display='block';
+    document.getElementById('lp').value='';document.getElementById('lp').focus();
+  }
+}
+['ln','lp'].forEach(id=>document.getElementById(id).addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();}));
+
+function doLogout(){
+  cu=null;sessionStorage.removeItem('gs2_cu');
+  document.getElementById('app').classList.remove('show');
+  document.getElementById('login').style.display='flex';
+  document.getElementById('lp').value='';document.getElementById('lerr').style.display='none';
+  setTimeout(()=>document.getElementById('ln').focus(),80);
+}
+
+function startApp(){
+  const appEl=document.getElementById('app');if(appEl)appEl.classList.add('show');
+  const tnavEl=document.getElementById('tnav');if(tnavEl)tnavEl.style.display='flex';
+  const ini=cu.name.charAt(0).toUpperCase();
+  const wsEl=document.getElementById('ws-ico');if(wsEl)wsEl.textContent=ini;
+  const unmEl=document.getElementById('sb-unm');if(unmEl)unmEl.textContent=cu.name;
+  const avEl=document.getElementById('top-av');if(avEl)avEl.textContent=ini;
+  applyDark(localStorage.getItem('gs2_dark')==='1');
+  if(localStorage.getItem('gs2_sb')==='0'){
+    const sbEl=document.getElementById('sb');if(sbEl)sbEl.classList.add('collapsed');
+    const stEl=document.getElementById('sb-toggle');if(stEl)stEl.textContent='▶';
+  }
+  switchDB('gaiko');
+  /* Firebase未設定で初回ログイン時はセットアップ画面を表示 */
+  if(!localStorage.getItem('gs2_fb_url') && !localStorage.getItem('gs2_fb_skip')){
+    setTimeout(function(){ document.getElementById('fb-setup').style.display='flex'; }, 600);
+  }
+}
+
+/* check guest token on load */
+if(cu){
+  if(cu.role==='viewer') startViewerMode();
+  else startApp();
+}
+
+/* ════════════════════════════════════════
+   DARK MODE
+════════════════════════════════════════ */
+function applyDark(on){
+  document.documentElement.setAttribute('data-theme',on?'dark':'light');
+  const dic=document.getElementById('dark-ic');if(dic)dic.textContent=on?'☀️':'🌙';
+  const dlbl=document.getElementById('dark-lbl');if(dlbl)dlbl.textContent=on?'ライトモード':'ダークモード';
+  const dbtn=document.getElementById('dark-btn');if(dbtn)dbtn.textContent=on?'☀️':'🌙';
+}
+function toggleDark(){const on=document.documentElement.getAttribute('data-theme')!=='dark';localStorage.setItem('gs2_dark',on?'1':'0');applyDark(on);}
+
+/* ════════════════════════════════════════
+   TABLE
+════════════════════════════════════════ */
+function refreshFilters(){
+  if(currentDB==='container'){refreshContainerFilters();return;}
+  const ts=document.getElementById('f-tanto'), ns=document.getElementById('f-niyaku');
+  if(!ts||!ns)return;
+  const tv=ts.value, nv=ns.value;
+  ts.innerHTML='<option value="">全員</option>';
+  ns.innerHTML='<option value="">すべて</option>';
+  OPTIONS.tanto.forEach(o=>{const el=document.createElement('option');el.value=el.textContent=o.v;if(o.v===tv)el.selected=true;ts.appendChild(el);});
+  OPTIONS.cargo.forEach(o=>{const el=document.createElement('option');el.value=el.textContent=o.v;if(o.v===nv)el.selected=true;ns.appendChild(el);});
+}
+function clearFilters(){
+  const fn=document.getElementById('f-name');if(fn)fn.value='';
+  const ft=document.getElementById('f-tanto');if(ft)ft.value='';
+  const fny=document.getElementById('f-niyaku');if(fny)fny.value='';
+  const fs=document.getElementById('f-schedule');if(fs)fs.value='';
+  if(currentDB==='gaiko') renderTable();
+  else{renderContainerTable();if(currentViewMode==='calendar')renderCalendar();}
+}
+function getFilteredRows(){
+  const fn=((document.getElementById('f-name') ? document.getElementById('f-name').value : '')||'').toLowerCase();
+  const ft=(document.getElementById('f-tanto') ? document.getElementById('f-tanto').value : '')||'';
+  const fn2=(document.getElementById('f-niyaku') ? document.getElementById('f-niyaku').value : '')||'';
+  return rows.filter(r=>{
+    if(fn&&!(r.name||'').toLowerCase().includes(fn))return false;
+    if(ft&&r.tanto!==ft)return false;
+    if(fn2&&r.cargo!==fn2)return false;
+    return true;
+  }).sort((a,b)=>{
+    let av=a[sort.col]||'',bv=b[sort.col]||'';
+    if(typeof av==='boolean')av=av?1:0;if(typeof bv==='boolean')bv=bv?1:0;
+    if(av<bv)return sort.dir==='asc'?-1:1;if(av>bv)return sort.dir==='asc'?1:-1;return 0;
+  });
+}
+
+function makeBadge(field,val){
+  if(!val)return null;
+  const b=document.createElement('span');
+  b.className='badge '+getColor(field,val);
+  b.textContent=val;
+  return b;
+}
+
+function renderTable(){
+  const data=getFilteredRows();
+  const cnt=document.getElementById('fc-cnt');if(cnt)cnt.textContent=data.length+'件';
+
+  /* thead */
+  const thead=document.getElementById('thead');if(!thead)return;
+  thead.innerHTML='';
+  const htr=document.createElement('tr');
+  COLS.forEach((col,colIdx)=>{
+    const th=document.createElement('th');
+    th.style.width=colW[col.key]+'px';
+    th.dataset.key=col.key;
+    th.draggable=true;
+
+    const inner=document.createElement('div');inner.className='th-in';
+
+    // ⠿ drag handle — built with createElement to preserve events
+    const handle=document.createElement('span');
+    handle.className='th-drag-handle';handle.textContent='⠿';handle.title='ドラッグで列移動';
+    handle.style.pointerEvents='none'; // let th handle drag events
+    inner.appendChild(handle);
+
+    const ic=document.createElement('span');ic.className='th-ic';ic.textContent=col.icon;
+    inner.appendChild(ic);
+    const lbl=document.createElement('span');lbl.className='th-lbl';
+    lbl.textContent=getColLabel(col.key,'gaiko');
+    lbl.title='ダブルタップ/クリックで列名を変更';
+    lbl.style.cursor='pointer';
+    addDoubleTap(lbl, e=>{
+      const cur=lbl.textContent;
+      const inp=document.createElement('input');
+      inp.className='th-lbl-edit';inp.value=cur;
+      inp.addEventListener('click',ev=>ev.stopPropagation());
+      inp.addEventListener('mousedown',ev=>ev.stopPropagation());
+      inp.addEventListener('touchstart',ev=>ev.stopPropagation());
+      lbl.replaceWith(inp);inp.focus();inp.select();
+      const commit=()=>{
+        const v=inp.value.trim();
+        if(v&&v!==cur){colLabels[col.key]=v;saveColLabels();}
+        else if(!v){delete colLabels[col.key];saveColLabels();}
+        renderTable();
+      };
+      inp.addEventListener('blur',commit);
+      inp.addEventListener('keydown',e2=>{
+        e2.stopPropagation();
+        if(e2.key==='Enter')inp.blur();
+        if(e2.key==='Escape'){inp.value=cur;inp.removeEventListener('blur',commit);inp.blur();renderTable();}
+      });
+    });
+    inner.appendChild(lbl);
+
+    if(col.sort){
+      const arr=document.createElement('span');arr.className='sort-a'+(sort.col===col.key?' on':'');
+      arr.textContent=sort.col===col.key?(sort.dir==='asc'?'↑':'↓'):'↕';
+      inner.appendChild(arr);
+      inner.addEventListener('click',ev=>{
+        if(ev.target.classList.contains('resizer'))return;
+        sort.col===col.key?(sort.dir=sort.dir==='asc'?'desc':'asc'):(sort={col:col.key,dir:'asc'});renderTable();
+      });
+    }
+    const res=document.createElement('div');res.className='resizer';
+    res.style.pointerEvents='auto';
+    res.addEventListener('mousedown',ev=>{ ev.stopPropagation(); startResize(ev,col.key,th); });
+    res.addEventListener('touchstart',ev=>{ ev.stopPropagation(); startResize(ev,col.key,th); },{passive:false});
+    inner.appendChild(res);
+
+    th.appendChild(inner);
+    th.addEventListener('dragstart', e=>{ if(e.target.classList.contains('resizer'))return; startColDrag(e,col.key,'gaiko'); });
+    th.addEventListener('dragover',  e=>colDragOver(e,th));
+    th.addEventListener('dragleave', e=>colDragLeave(e,th));
+    th.addEventListener('drop',      e=>colDrop(e,col.key,'gaiko'));
+    th.addEventListener('dragend',   ()=>colDragEnd());
+    htr.appendChild(th);
+  });
+  thead.appendChild(htr);
+
+  /* tbody */
+  const tbody=document.getElementById('tbody');if(!tbody)return;
+  tbody.innerHTML='';
+  data.forEach(row=>{
+    const tr=document.createElement('tr');
+    if(!isGuest) tr.onclick=()=>showDetail(row.id);
+    else tr.onclick=()=>showGuestDetail(row.id,'gaiko');
+    tr.style.cursor='pointer';
+    COLS.forEach(col=>{
+      const td=document.createElement('td');td.style.width=colW[col.key]+'px';
+      const val=row[col.key];
+      if(col.type==='title'){
+        const wrap=document.createElement('div');wrap.className='td-name';
+        // アイコン画像があれば表示、なければ📄
+        const iconSrc=shipIcons[row.id]||'';
+        const ic=document.createElement('div');ic.className='td-pg-ic';
+        if(iconSrc){
+          const img=document.createElement('img');
+          img.src=iconSrc;img.style.cssText='width:18px;height:18px;border-radius:3px;object-fit:cover;display:block';
+          ic.appendChild(img);
+        } else {
+          ic.textContent='📄';
+        }
+        const nm=document.createElement('span');nm.className='td-nm-txt';nm.textContent=val||'—';
+        const op=document.createElement('span');op.className='td-open';op.textContent='開く';
+        op.onclick=e=>{e.stopPropagation();showDetail(row.id);};
+        wrap.append(ic,nm,op);td.appendChild(wrap);
+      } else if(col.type==='select'){
+        const b=makeBadge(col.key,val);if(b)td.appendChild(b);else{td.textContent='';td.style.color='var(--t4)';}
+      } else if(col.type==='check'){
+        const cb=document.createElement('div');cb.className='cb'+(val?' chk':'');
+        if(!isGuest) cb.onclick=e=>{
+          e.stopPropagation();
+          row[col.key]=!row[col.key];
+          row.upd_at=new Date().toLocaleString('ja-JP',{year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'});
+          if(cu) row.upd_by=cu.name;
+          saveRows();renderTable();setSave('saved');
+        };
+        else cb.style.cursor='default';
+        td.appendChild(cb);td.style.textAlign='center';
+      } else if(col.type==='date'){
+        const s=document.createElement('span');s.className='dt';s.textContent=val||'';td.appendChild(s);
+      } else {
+        td.textContent=val||'';if(!val)td.style.color='var(--t4)';
+      }
+      tr.appendChild(td);
+    });
+    tbody.appendChild(tr);
+  });
+  /* hide edit controls in guest mode */
+  if(isGuest){
+    setTimeout(()=>{
+      document.querySelectorAll('.db-new-btn,.add-row,.sb-add').forEach(el=>el.style.display='none');
+      document.querySelectorAll('.td-open').forEach(el=>el.style.display='none');
+    },0);
+  }
+}
+
+/* col resize */
+let _r=null;
+function startResize(e,key,th){
+  e.preventDefault();e.stopPropagation();
+  const startX = e.touches ? e.touches[0].clientX : e.clientX;
+  const sw=colW[key];
+  th.querySelector('.resizer').classList.add('act');
+  _r={key,sx:startX,sw,el:th.querySelector('.resizer')};
+  const mv=ev=>{
+    const cx = ev.touches ? ev.touches[0].clientX : ev.clientX;
+    colW[_r.key]=Math.max(50,_r.sw+(cx-_r.sx));saveColW();renderTable();
+  };
+  const up=()=>{
+    if(_r)_r.el.classList.remove('act');_r=null;
+    document.removeEventListener('mousemove',mv);document.removeEventListener('mouseup',up);
+    document.removeEventListener('touchmove',mv);document.removeEventListener('touchend',up);
+  };
+  document.addEventListener('mousemove',mv);document.addEventListener('mouseup',up);
+  document.addEventListener('touchmove',mv,{passive:false});document.addEventListener('touchend',up);
+}
+
+/* ════════════════════════════════════════
+   PICKER PANEL
+════════════════════════════════════════ */
+let _picker = {field:null, single:true, current:[], anchorEl:null, onChange:null};
+
+function openPicker(field, currentVal, anchorEl, onChange){
+  closePicker();
+  const isSingle = SINGLE_SELECT.has(field);
+  const current = isSingle ? (currentVal?[currentVal]:[]) : (Array.isArray(currentVal)?currentVal.slice():(currentVal?[currentVal]:[]));
+  _picker = {field, single:isSingle, current:current.slice(), anchorEl, onChange};
+
+  const panel = document.getElementById('picker-panel');
+  const colDef = COLS.find(c=>c.key===field);
+  document.getElementById('picker-title').textContent = (colDef ? colDef.label : field) || field;
+  const _ps=document.getElementById('picker-search');if(_ps)_ps.value='';
+  document.getElementById('picker-hint').textContent = isSingle ? 'オプションを選択するか作成します' : 'オプションを選択するか作成します';
+
+  renderPickerSelected();
+  renderPickerItems('');
+
+  /* position */
+  const rect = anchorEl.getBoundingClientRect();
+  panel.style.display = 'flex';
+  const pw = 320, ph = 420;
+  let left = rect.left;
+  let top = rect.bottom + 4;
+  if(left + pw > window.innerWidth - 8) left = window.innerWidth - pw - 8;
+  if(top + ph > window.innerHeight - 8) top = rect.top - ph - 4;
+  panel.style.left = Math.max(8,left)+'px';
+  panel.style.top = Math.max(8,top)+'px';
+
+  setTimeout(()=>document.getElementById('picker-search').focus(),50);
+}
+
+function renderPickerSelected(){
+  const wrap = document.getElementById('picker-selected-wrap');
+  /* remove old badges */
+  Array.prototype.slice.call(wrap.querySelectorAll('.sel-badge')).forEach(el=>el.remove());
+  const search = wrap.querySelector('.picker-search');
+  _picker.current.forEach(v=>{
+    const b = document.createElement('span');
+    b.className = 'sel-badge '+getColor(_picker.field,v);
+    b.innerHTML = `${v} <span class="sel-badge-x" data-v="${v}">×</span>`;
+    b.querySelector('.sel-badge-x').onclick = e=>{
+      e.stopPropagation();
+      _picker.current = _picker.current.filter(x=>x!==v);
+      renderPickerSelected();renderPickerItems((document.getElementById('picker-search') ? document.getElementById('picker-search').value : ''));
+      commitPicker();
+    };
+    wrap.insertBefore(b, search);
+  });
+}
+
+/* ─── カラーパレット ─── */
+const COLOR_CLASSES=['c0','c1','c2','c3','c4','c5','c6','c7','c8','c9','c10','c11','c12','c13','c14'];
+const COLOR_SAMPLES={c0:'#b7e4c7',c1:'#93c5fd',c2:'#f9a8d4',c3:'#fcd34d',c4:'#7dd3fc',c5:'#d8b4fe',c6:'#fdba74',c7:'#cbd5e1',c8:'#6ee7b7',c9:'#f0abfc',c10:'#fcd34d',c11:'#bbf7d0',c12:'#a5b4fc',c13:'#fca5a5',c14:'#d6d3d1'};
+
+let _colorTarget=null; // {field, val, div}
+function openColorPanel(field, val, triggerEl){
+  const panel=document.getElementById('color-panel');
+  panel.innerHTML='';
+  COLOR_CLASSES.forEach(cls=>{
+    const sw=document.createElement('div');
+    sw.className='cp-swatch'+((OPTIONS[field] && OPTIONS[field].find(function(o){return o.v===val}) && OPTIONS[field].find(function(o){return o.v===val}).c===cls)?' on':'');
+    sw.style.background=COLOR_SAMPLES[cls]||'#ccc';
+    sw.title=cls;
+    sw.onclick=e=>{
+      e.stopPropagation();
+      const opt=OPTIONS[field] ? OPTIONS[field].find(function(o){return o.v===val}) : null;
+      if(opt){opt.c=cls;saveOptions();}
+      panel.style.display='none';
+      renderPickerItems((document.getElementById('picker-search') ? document.getElementById('picker-search').value : ''));
+      renderTable();
+    };
+    panel.appendChild(sw);
+  });
+  const rect=triggerEl.getBoundingClientRect();
+  panel.style.display='flex';
+  let left=rect.left, top=rect.bottom+4;
+  if(left+180>window.innerWidth-8)left=window.innerWidth-188;
+  if(top+120>window.innerHeight-8)top=rect.top-124;
+  panel.style.left=Math.max(8,left)+'px';
+  panel.style.top=Math.max(8,top)+'px';
+}
+document.addEventListener('mousedown',e=>{
+  const cp=document.getElementById('color-panel');
+  if(cp.style.display==='flex'&&!cp.contains(e.target))cp.style.display='none';
+});
+
+function renderPickerItems(q){
+  const list=document.getElementById('picker-list');
+  list.innerHTML='';
+  const opts=getOpts(_picker.field);
+  const filtered=q?opts.filter(o=>o.v.toLowerCase().includes(q.toLowerCase())):opts;
+
+  filtered.forEach(opt=>{
+    const sel=_picker.current.includes(opt.v);
+    const row=document.createElement('div');
+    row.className='picker-item'+(sel?' selected':'');
+
+    /* チェック */
+    const chk=document.createElement('span');
+    chk.className='picker-item-check';chk.textContent='✓';
+
+    /* バッジ（クリックで選択） */
+    const lbl=document.createElement('span');
+    lbl.className='picker-item-label';
+    const badge=document.createElement('span');
+    badge.className='badge '+opt.c;badge.textContent=opt.v;
+    lbl.appendChild(badge);
+    lbl.onclick=e=>{e.stopPropagation();togglePickerItem(opt.v);};
+
+    /* アクションボタン群 */
+    const acts=document.createElement('div');acts.className='picker-item-actions';
+
+    /* 🎨 色変更 */
+    const colBtn=document.createElement('button');colBtn.className='pi-act-btn';colBtn.title='色を変更';colBtn.textContent='🎨';
+    colBtn.onclick=e=>{e.stopPropagation();openColorPanel(_picker.field,opt.v,colBtn);};
+
+    /* ✏️ 名前変更 */
+    const renBtn=document.createElement('button');renBtn.className='pi-act-btn';renBtn.title='名前を変更';renBtn.textContent='✏️';
+    renBtn.onclick=e=>{
+      e.stopPropagation();
+      const inp=document.createElement('input');
+      inp.className='badge '+opt.c;
+      inp.style.cssText='border:none;outline:none;background:inherit;font-family:inherit;font-size:12px;color:inherit;min-width:60px;flex:1;padding:0';
+      inp.value=opt.v;
+      lbl.innerHTML='';lbl.appendChild(inp);
+      inp.focus();inp.select();
+      const commit=()=>{
+        const nv=inp.value.trim();
+        if(nv&&nv!==opt.v){
+          rows.forEach(r=>{if(r[_picker.field]===opt.v)r[_picker.field]=nv;});
+          saveRows();
+          if(_picker.current.includes(opt.v)){
+            _picker.current=_picker.current.map(x=>x===opt.v?nv:x);
+            commitPicker();
+          }
+          opt.v=nv;saveOptions();
+        }
+        renderPickerItems((document.getElementById('picker-search') ? document.getElementById('picker-search').value : ''));
+      };
+      inp.addEventListener('blur',commit);
+      inp.addEventListener('keydown',e2=>{if(e2.key==='Enter')inp.blur();if(e2.key==='Escape'){inp.value=opt.v;inp.blur();}});
+    };
+
+    /* 🗑 削除 */
+    const delBtn=document.createElement('button');delBtn.className='pi-act-btn';delBtn.title='削除';delBtn.style.color='#c0392b';delBtn.textContent='🗑';
+    delBtn.onclick=e=>{
+      e.stopPropagation();
+      // confirmの代わりにインライン確認UI
+      if(row.dataset.confirming==='1'){
+        OPTIONS[_picker.field]=OPTIONS[_picker.field].filter(o=>o.v!==opt.v);
+        saveOptions();
+        _picker.current=_picker.current.filter(x=>x!==opt.v);
+        commitPicker();
+        const ps=document.getElementById('picker-search');
+        renderPickerItems(ps ? ps.value : '');
+      } else {
+        row.dataset.confirming='1';
+        delBtn.textContent='確認';
+        delBtn.style.background='#c0392b';
+        delBtn.style.color='#fff';
+        delBtn.style.borderRadius='3px';
+        delBtn.style.padding='1px 5px';
+        delBtn.style.fontSize='11px';
+        // 2秒後に戻す
+        setTimeout(()=>{
+          if(row.dataset.confirming==='1'){
+            row.dataset.confirming='';
+            delBtn.textContent='🗑';
+            delBtn.style.background='';
+            delBtn.style.color='#c0392b';
+            delBtn.style.padding='';
+            delBtn.style.fontSize='';
+          }
+        },2000);
+      }
+    };
+
+    acts.append(colBtn,renBtn,delBtn);
+    row.append(chk,lbl,acts);
+    list.appendChild(row);
+  });
+
+  /* 新規追加行 — 検索語が既存にない場合 */
+  if(q&&!opts.find(o=>o.v.toLowerCase()===q.toLowerCase())){
+    const addDiv=document.createElement('div');addDiv.className='picker-item';
+    addDiv.style.cssText='border-top:1px solid var(--border);margin-top:4px;padding-top:8px';
+    addDiv.innerHTML=`<span style="font-size:12px;color:var(--t2)">＋ 「<b>${q}</b>」を追加</span>`;
+    addDiv.onclick=()=>{
+      const newOpt={v:q,c:'c14'};
+      OPTIONS[_picker.field].push(newOpt);
+      saveOptions();
+      togglePickerItem(q);
+      (function(){const _ps2=document.getElementById('picker-search');if(_ps2)_ps2.value='';})();
+      renderPickerItems('');
+    };
+    list.appendChild(addDiv);
+  }
+
+  /* 空の検索欄でも「新しいオプションを追加」ボタンを常時表示 */
+  if(!q){
+    const addBtn=document.createElement('div');
+    addBtn.style.cssText='display:flex;align-items:center;gap:6px;padding:7px 8px;border-top:1px solid var(--border);margin-top:4px;cursor:pointer;border-radius:4px;font-size:12px;color:var(--t3)';
+    addBtn.innerHTML='<span style="font-size:14px">＋</span> 新しいオプションを追加…';
+    addBtn.onmouseenter=()=>addBtn.style.background='var(--hover)';
+    addBtn.onmouseleave=()=>addBtn.style.background='';
+    addBtn.onclick=()=>{
+      document.getElementById('picker-search').focus();
+    };
+    list.appendChild(addBtn);
+  }
+}
+
+function togglePickerItem(val){
+  if(_picker.single){
+    _picker.current = _picker.current[0]===val ? [] : [val];
+  } else {
+    const idx=_picker.current.indexOf(val);
+    if(idx>=0)_picker.current.splice(idx,1);else _picker.current.push(val);
+  }
+  renderPickerSelected();renderPickerItems((document.getElementById('picker-search') ? document.getElementById('picker-search').value : ''));
+  commitPicker();
+  if(_picker.single) closePicker();
+}
+
+function commitPicker(){
+  if(!_picker.onChange) return;
+  const val = _picker.single ? (_picker.current[0]||'') : _picker.current.slice();
+  _picker.onChange(val);
+}
+
+function filterPickerItems(){
+  renderPickerItems((document.getElementById('picker-search') ? document.getElementById('picker-search').value : ''));
+}
+
+function closePicker(){
+  document.getElementById('picker-panel').style.display='none';
+}
+
+document.addEventListener('mousedown',e=>{
+  const panel=document.getElementById('picker-panel');
+  if(panel.style.display==='flex' && !panel.contains(e.target)){
+    closePicker();
+  }
+});
+
+/* ════════════════════════════════════════
+   DETAIL MODAL
+════════════════════════════════════════ */
+/* live editing state */
+let _editRow = null;
+
+function showDetail(id){
+  const row = rows.find(r=>r.id===id);if(!row)return;
+  _editRow = Object.assign({}, row);
+  renderDetailModal();
+}
+
+function renderDetailModal(){
+  const row = _editRow;
+  const CHECK_FIELDS=[
+    {k:'isps',l:'ISPS・船舶保安情報'},{k:'rpm',l:'RPM-無線検疫'},
+    {k:'naccs_zen',l:'入港前統一申請NACCS'},{k:'naccs_nyuko',l:'入港届NACCS'},{k:'tons_zei',l:'とん税納付'}
+  ];
+  const DATE_FIELDS=[
+    {k:'eta',l:'ETA'},{k:'etb',l:'ETB'},{k:'etd',l:'ETD'},
+    {k:'tons_exp',l:'年間とん税有効期限'},{k:'ssec_exp',l:'SSEC有効期限'},
+  ];
+  const TEXT_FIELDS=[{k:'maeko',l:'前港'},{k:'tsugiko',l:'次港'},{k:'biko',l:'備考'}];
+  const SELECT_FIELDS=[
+    {k:'cargo',l:'貨物名',ic:'📍'},{k:'tanto',l:'担当者',ic:'📍'},
+    {k:'berth',l:'桟橋名',ic:'≡'},{k:'niyaku',l:'荷役予定',ic:'📍'},
+    {k:'tomari',l:'停泊錨地',ic:'📍'},{k:'upd_by',l:'情報更新者',ic:'📍'},
+  ];
+
+  const selRows = SELECT_FIELDS.map(f=>`
+    <div class="prop-row" id="prow-${f.k}">
+      <div class="prop-key prop-key-editable" data-field="${f.k}" data-default="${f.l}" data-ic="${f.ic}"><span class="prop-key-ic">${f.ic}</span><span class="prop-key-lbl" title="ダブルタップで項目名を変更">${getPropLabel(f.k,f.l)}</span></div>
+      <div class="prop-val" id="pval-${f.k}" onclick="openDetailPicker('${f.k}',event)">
+        ${row[f.k]?`<span class="sel-badge ${getColor(f.k,row[f.k])}">${row[f.k]}</span>`:'<span class="prop-placeholder">選択…</span>'}
+      </div>
+    </div>`).join('');
+
+  const dateRows = DATE_FIELDS.map(f=>`
+    <div class="prop-row">
+      <div class="prop-key prop-key-editable" data-field="${f.k}" data-default="${f.l}" data-ic="📅"><span class="prop-key-ic">📅</span><span class="prop-key-lbl" title="ダブルタップで項目名を変更">${getPropLabel(f.k,f.l)}</span></div>
+      <div class="prop-val cal-date-trigger" onclick="openCalPopup('${f.k}',_editRow['${f.k}'],this,_editRow,true)">
+        <span id="calval-${f.k}" style="font-size:13px;color:${row[f.k]?'var(--text)':'var(--t4)'};cursor:pointer">${row[f.k]||'クリックして日付を選択…'}</span>
+        ${row[f.k]?`<button class="date-field-clear" onclick="event.stopPropagation();_editRow['${f.k}']='';document.getElementById('calval-${f.k}').textContent='クリックして日付を選択…';document.getElementById('calval-${f.k}').style.color='var(--t4)'">×</button>`:''}
+      </div>
+    </div>`).join('');
+
+  const textRows = TEXT_FIELDS.map(f=>`
+    <div class="prop-row">
+      <div class="prop-key prop-key-editable" data-field="${f.k}" data-default="${f.l}" data-ic="≡"><span class="prop-key-ic">≡</span><span class="prop-key-lbl" title="ダブルタップで項目名を変更">${getPropLabel(f.k,f.l)}</span></div>
+      <div class="prop-val"><input class="prop-text-input" id="ptx-${f.k}" value="${row[f.k]||''}" placeholder="—" oninput="_editRow['${f.k}']=this.value"></div>
+    </div>`).join('');
+
+  const cbRows = CHECK_FIELDS.map(f=>`
+    <div class="prop-row">
+      <div class="prop-key prop-key-editable" data-field="${f.k}" data-default="${f.l}" data-ic="☑"><span class="prop-key-ic">☑</span><span class="prop-key-lbl" title="ダブルタップで項目名を変更">${getPropLabel(f.k,f.l)}</span></div>
+      <div class="prop-val">
+        <div class="prop-cb-wrap">
+          <div class="cb${row[f.k]?' chk':''}" id="pcb-${f.k}" onclick="toggleDetailCB('${f.k}')"></div>
+          <span class="mf-cb-lbl" style="font-size:13px">${row[f.k]?'はい':'いいえ'}</span>
+        </div>
+      </div>
+    </div>`).join('');
+
+  showOverlay(`<div class="modal">
+    <div class="modal-top">
+      <textarea class="modal-title-input" id="det-name" rows="1" placeholder="船名/Voy NO.">${row.name||''}</textarea>
+      <button class="modal-close-btn" onclick="closeOverlay()">✕</button>
+    </div>
+    <div class="prop-list">
+      <div id="icon-wrap-${row.id}">${renderShipIconSection(row.id,true)}</div>
+      ${selRows}
+      <div class="prop-divider"></div>
+      ${dateRows}
+      <div class="prop-divider"></div>
+      ${textRows}
+      <div class="prop-divider"></div>
+      ${cbRows}
+      <div class="prop-divider"></div>
+      <div class="prop-row">
+        <div class="prop-key"><span class="prop-key-ic">🕐</span>情報最終更新日時</div>
+        <div class="prop-val" style="color:var(--t3);font-size:13px;cursor:default">${row.upd_at||'—'} <span style="font-size:11px;color:var(--t4)">(保存時に自動更新)</span></div>
+      </div>
+      <div class="subtable-section">
+        <div class="subtable-title">🚤 水先人 曳船 利用情報</div>
+        <div id="sui-wrap-${row.id}"></div>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="ma-btn danger" onclick="deleteRow('${row.id}')">削除</button>
+      <button class="ma-btn" onclick="closeOverlay()">キャンセル</button>
+      <button class="ma-btn primary" onclick="saveDetail()">保存</button>
+    </div>
+  </div>`);
+
+  /* auto-resize title textarea */
+  const ta=document.getElementById('det-name');
+  if(ta){ta.style.height='auto';ta.style.height=ta.scrollHeight+'px';ta.addEventListener('input',()=>{ta.style.height='auto';ta.style.height=ta.scrollHeight+'px';_editRow.name=ta.value;});}
+  bindPropKeyEditable();
+  renderSuiTable(row.id);
+}
+
+function openDetailPicker(field, e){
+  e.stopPropagation();
+  const anchorEl = document.getElementById('pval-'+field);
+  openPicker(field, _editRow[field]||'', anchorEl, val=>{
+    _editRow[field] = val;
+    /* re-render just this prop-val */
+    const pval = document.getElementById('pval-'+field);
+    if(pval){
+      pval.innerHTML = val
+        ? `<span class="sel-badge ${getColor(field,val)}">${val}</span>`
+        : `<span class="prop-placeholder">選択…</span>`;
+      pval.onclick = ev=>openDetailPicker(field,ev);
+    }
+  });
+}
+
+function toggleDetailCB(key){
+  _editRow[key]=!_editRow[key];
+  const cb=document.getElementById('pcb-'+key);
+  if(cb){cb.classList.toggle('chk',_editRow[key]);}
+  const lbl=cb?cb.nextElementSibling:null;if(lbl)lbl.textContent=_editRow[key]?'はい':'いいえ';
+}
+
+function saveDetail(){
+  const idx=rows.findIndex(r=>r.id===_editRow.id);if(idx<0)return;
+  _editRow.upd_at=new Date().toLocaleString('ja-JP',{year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'});
+  // upd_by はユーザーが選択した値を使用（ログインユーザー名での上書きなし）
+  rows[idx]=Object.assign({}, _editRow);saveRows();closeOverlay();refreshFilters();renderTable();setSave('saved');
+}
+
+function deleteRow(id){
+  showConfirm('このレコードを削除しますか？', ()=>{
+    rows=rows.filter(r=>r.id!==id);saveRows();closeOverlay();refreshFilters();renderTable();
+  });
+}
+
+/* ════════════════════════════════════════
+   NEW ROW MODAL
+════════════════════════════════════════ */
+let _newRow = {};
+
+function showNewRowModal(){
+  if(currentDB==='container'){showNewContainerRowModal();return;}
+  _newRow = {id:'r'+Date.now(),name:'',eta:'',etb:'',etd:'',cargo:'',tanto:'',berth:'',niyaku:'',tomari:'',maeko:'',tsugiko:'',isps:false,rpm:false,naccs_zen:false,naccs_nyuko:false,tons_zei:false,tons_exp:'',ssec_exp:'',upd_at:'',upd_by:(cu ? cu.name : ''),biko:''};
+
+  const SELECT_FIELDS=[
+    {k:'cargo',l:'貨物名',ic:'📍'},{k:'tanto',l:'担当者',ic:'📍'},
+    {k:'berth',l:'桟橋名',ic:'≡'},{k:'niyaku',l:'荷役予定',ic:'📍'},
+    {k:'tomari',l:'停泊錨地',ic:'📍'},
+  ];
+
+  const selRows=SELECT_FIELDS.map(f=>`
+    <div class="prop-row">
+      <div class="prop-key"><span class="prop-key-ic">${f.ic}</span>${f.l}</div>
+      <div class="prop-val" id="npval-${f.k}" onclick="openNewPicker('${f.k}',event)">
+        <span class="prop-placeholder">選択…</span>
+      </div>
+    </div>`).join('');
+
+  showOverlay(`<div class="modal smodal">
+    <div class="modal-top">
+      <div style="font-size:17px;font-weight:700;flex:1">新しいレコード</div>
+      <button class="modal-close-btn" onclick="closeOverlay()">✕</button>
+    </div>
+    <div class="prop-list">
+      <div class="prop-row">
+        <div class="prop-key"><span class="prop-key-ic">Aa</span>船名/Voy NO.</div>
+        <div class="prop-val"><input class="prop-text-input" id="nf-name" placeholder="DL LOTUS V0726" oninput="_newRow.name=this.value"></div>
+      </div>
+      <div class="prop-row">
+        <div class="prop-key"><span class="prop-key-ic">📅</span>ETA</div>
+        <div class="prop-val cal-date-trigger" onclick="openCalPopup('eta',_newRow.eta,this,_newRow,true)"><span id="calval-eta" style="font-size:13px;color:var(--t4);cursor:pointer">クリックして日付を選択…</span></div>
+      </div>
+      <div class="prop-row">
+        <div class="prop-key"><span class="prop-key-ic">📅</span>ETB</div>
+        <div class="prop-val cal-date-trigger" onclick="openCalPopup('etb',_newRow.etb,this,_newRow,true)"><span id="calval-etb" style="font-size:13px;color:var(--t4);cursor:pointer">クリックして日付を選択…</span></div>
+      </div>
+      <div class="prop-row">
+        <div class="prop-key"><span class="prop-key-ic">📅</span>ETD</div>
+        <div class="prop-val cal-date-trigger" onclick="openCalPopup('etd',_newRow.etd,this,_newRow,true)"><span id="calval-etd" style="font-size:13px;color:var(--t4);cursor:pointer">クリックして日付を選択…</span></div>
+      </div>
+      ${selRows}
+      <div class="prop-row">
+        <div class="prop-key"><span class="prop-key-ic">≡</span>前港</div>
+        <div class="prop-val"><input class="prop-text-input" id="nf-maeko" placeholder="ULSAN" oninput="_newRow.maeko=this.value"></div>
+      </div>
+      <div class="prop-row">
+        <div class="prop-key"><span class="prop-key-ic">≡</span>次港</div>
+        <div class="prop-val"><input class="prop-text-input" id="nf-tsugiko" oninput="_newRow.tsugiko=this.value"></div>
+      </div>
+      <div class="prop-divider"></div>
+      <div class="prop-row">
+        <div class="prop-key"><span class="prop-key-ic">Aa</span>備考</div>
+        <div class="prop-val"><input class="prop-text-input" id="nf-biko" placeholder="備考を入力…" oninput="_newRow.biko=this.value"></div>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="ma-btn" onclick="closeOverlay()">キャンセル</button>
+      <button class="ma-btn primary" onclick="createRow()">作成</button>
+    </div>
+  </div>`);
+  setTimeout(()=>{const _e=document.getElementById('nf-name');if(_e)_e.focus();},40);
+}
+
+function openNewPicker(field, e){
+  e.stopPropagation();
+  const anchorEl = document.getElementById('npval-'+field);
+  openPicker(field, _newRow[field]||'', anchorEl, val=>{
+    _newRow[field]=val;
+    const pval=document.getElementById('npval-'+field);
+    if(pval){
+      pval.innerHTML=val
+        ?`<span class="sel-badge ${getColor(field,val)}">${val}</span>`
+        :`<span class="prop-placeholder">選択…</span>`;
+      pval.onclick=ev=>openNewPicker(field,ev);
+    }
+  });
+}
+
+function createRow(){
+  if(!_newRow.name){alert('船名を入力してください');return;}
+  _newRow.upd_at=new Date().toLocaleString('ja-JP',{year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'});
+  rows.push(Object.assign({}, _newRow));saveRows();closeOverlay();refreshFilters();renderTable();setSave('saved');
+}
+/* ════════════════════════════════════════
+   OVERLAY
+════════════════════════════════════════ */
+function showOverlay(html){
+  closeOverlay();closePicker();
+  const ov=document.createElement('div');ov.className='overlay';ov.id='ov';
+  ov.innerHTML=html;
+  ov.addEventListener('click',e=>{if(e.target===ov){closePicker();closeOverlay();}});
+  document.body.appendChild(ov);
+}
+function closeOverlay(){const _e=document.getElementById('ov');if(_e)_e.remove();}
+
+/* ════════════════════════════════════════
+   SEARCH
+════════════════════════════════════════ */
+function doSearch(){
+  showOverlay(`<div class="modal smodal">
+    <div class="modal-top"><div style="font-size:16px;font-weight:600">検索</div><button class="modal-close-btn" onclick="closeOverlay()">✕</button></div>
+    <div class="prop-list" style="display:block">
+      <input class="prop-text-input" id="sq" placeholder="船名で検索…" oninput="doSQ()" style="border:1px solid var(--border2);border-radius:4px;padding:7px 10px;margin-bottom:8px">
+      <div id="sqres" style="max-height:240px;overflow-y:auto"></div>
+    </div>
+  </div>`);
+  setTimeout(()=>{const _e=document.getElementById('sq');if(_e)_e.focus();},40);
+}
+function doSQ(){
+  const q=((document.getElementById('sq') ? document.getElementById('sq').value : '')||'').toLowerCase();
+  const res=document.getElementById('sqres');if(!res)return;
+  if(!q){res.innerHTML='';return;}
+  const hits=rows.filter(r=>(r.name||'').toLowerCase().includes(q));
+  res.innerHTML=hits.length
+    ?hits.map(r=>`<div onclick="closeOverlay();showDetail('${r.id}')" style="padding:7px 8px;border-radius:4px;cursor:pointer;font-size:13px;display:flex;align-items:center;gap:8px" onmouseover="this.style.background='var(--hover)'" onmouseout="this.style.background=''">📄 <span>${r.name}</span><span style="margin-left:auto;font-size:11px;color:var(--t3)">${r.eta||''}</span></div>`).join('')
+    :'<div style="padding:8px;font-size:13px;color:var(--t3)">見つかりませんでした</div>';
+}
+
+/* ════════════════════════════════════════
+   USER MGMT
+════════════════════════════════════════ */
+function showUserModal(){
+  if((cu && cu.role==='admin')){
+    const list=users.map(u=>`<div class="urow"><div class="uav">${u.name.charAt(0).toUpperCase()}</div><div class="unm">${u.name}<div class="urole-txt">${u.role==='admin'?'管理者':u.role==='viewer'?'閲覧者':'編集者'}</div></div>${u.id!==cu.id?`<button class="udel" onclick="delUser('${u.id}')">削除</button>`:''}</div>`).join('');
+    showOverlay(`<div class="modal smodal">
+      <div class="modal-top"><div style="font-size:16px;font-weight:600">メンバー管理</div><button class="modal-close-btn" onclick="closeOverlay()">✕</button></div>
+      <div class="prop-list" style="display:block">
+        <div class="ulist">${list}</div>
+        <div style="font-size:12px;font-weight:600;color:var(--t3);margin-bottom:8px;letter-spacing:.04em">新しいメンバーを追加</div>
+        <input class="prop-text-input" id="nu-n" placeholder="ユーザー名" style="border:1px solid var(--border2);border-radius:4px;padding:7px 10px;margin-bottom:8px">
+        <input class="prop-text-input" id="nu-p" type="password" placeholder="パスワード" style="border:1px solid var(--border2);border-radius:4px;padding:7px 10px;margin-bottom:8px">
+        <select class="prop-text-input" id="nu-r" style="border:1px solid var(--border2);border-radius:4px;padding:7px 10px"><option value="viewer">閲覧者</option><option value="editor">編集者</option><option value="admin">管理者</option></select>
+      </div>
+      <div class="modal-actions">
+        <button class="ma-btn" onclick="closeOverlay()">閉じる</button>
+        <button class="ma-btn primary" onclick="addUser()">追加</button>
+      </div>
+    </div>`);
+  } else {
+    showOverlay(`<div class="modal" style="width:320px">
+      <div class="modal-top"><div style="font-size:16px;font-weight:600">アカウント</div><button class="modal-close-btn" onclick="closeOverlay()">✕</button></div>
+      <div class="prop-list" style="display:block"><div style="font-size:13px;color:var(--t2);margin-bottom:12px">${(cu ? cu.name : '')}（${(cu && cu.role==='admin')?'管理者':(cu && cu.role==='viewer')?'閲覧者':'編集者'}）</div></div>
+      <div class="modal-actions"><button class="ma-btn" onclick="closeOverlay()">閉じる</button><button class="ma-btn danger" onclick="closeOverlay();doLogout()">ログアウト</button></div>
+    </div>`);
+  }
+}
+function addUser(){
+  const n=(document.getElementById('nu-n') ? document.getElementById('nu-n').value : '').trim();
+  const p=(document.getElementById('nu-p') ? document.getElementById('nu-p').value : '');
+  const r=(document.getElementById('nu-r') ? document.getElementById('nu-r').value : null)||'editor';
+  if(!n||!p){alert('ユーザー名とパスワードを入力してください');return;}
+  if(users.find(u=>u.name===n)){alert('そのユーザー名は既に使われています');return;}
+  users.push({id:'u'+Date.now(),name:n,pass:p,role:r});saveUsers();closeOverlay();showUserModal();
+}
+function delUser(id){
+  showConfirm('このユーザーを削除しますか？', ()=>{
+    users=users.filter(u=>u.id!==id);saveUsers();closeOverlay();showUserModal();
+  });
+}
+
+/* ════════════════════════════════════════
+   SAVE CHIP
+════════════════════════════════════════ */
+let _st=null;
+function setSave(s){
+  const c=document.getElementById('savechip');c.classList.add('show');
+  document.getElementById('scdot').className='sc-dot '+(s==='saved'?'sv':'sg');
+  document.getElementById('sclbl').textContent=s==='saved'?'保存済み':'保存中…';
+  clearTimeout(_st);if(s==='saved')_st=setTimeout(()=>c.classList.remove('show'),2000);
+}
+
+/* ════════════════════════════════════════
+   COLUMN DRAG-DROP REORDER
+════════════════════════════════════════ */
+let _dragKey=null, _dragDB=null;
+
+function startColDrag(e, key, db){
+  _dragKey=key; _dragDB=db;
+  e.dataTransfer.effectAllowed='move';
+  e.dataTransfer.setData('text/plain', key);
+  setTimeout(()=>{
+    const th=document.querySelector(`th[data-key="${key}"]`);
+    if(th) th.classList.add('col-dragging');
+  },0);
+}
+
+function colDragOver(e, th){
+  e.preventDefault();
+  e.stopPropagation();
+  e.dataTransfer.dropEffect='move';
+  document.querySelectorAll('th.col-drag-over-left,th.col-drag-over-right').forEach(el=>{
+    el.classList.remove('col-drag-over-left','col-drag-over-right');
+  });
+  const rect=th.getBoundingClientRect();
+  th.classList.add(e.clientX < rect.left+rect.width/2 ? 'col-drag-over-left':'col-drag-over-right');
+}
+
+function colDragLeave(e, th){
+  // Only remove if leaving the th entirely (not entering a child)
+  if(!th.contains(e.relatedTarget)){
+    th.classList.remove('col-drag-over-left','col-drag-over-right');
+  }
+}
+
+function colDrop(e, targetKey, db){
+  e.preventDefault();
+  e.stopPropagation();
+  // read state BEFORE colDragEnd clears it
+  const fromKey=_dragKey, fromDB=_dragDB;
+  colDragEnd();
+  if(!fromKey||fromKey===targetKey||fromDB!==db) return;
+  const arr = db==='gaiko' ? COLS : CONTAINER_COLS;
+  const fromIdx = arr.findIndex(c=>c.key===fromKey);
+  if(fromIdx<0) return;
+  // determine insert position from drop indicator class
+  const targetTh=document.querySelector(`th[data-key="${targetKey}"]`);
+  const insertBefore = targetTh
+    ? (e.clientX < targetTh.getBoundingClientRect().left + targetTh.getBoundingClientRect().width/2)
+    : false;
+  const toIdx=arr.findIndex(c=>c.key===targetKey);
+  if(toIdx<0) return;
+  var _spliced=arr.splice(fromIdx,1); var moved=_spliced[0];
+  const newTo=arr.findIndex(c=>c.key===targetKey);
+  arr.splice(insertBefore ? newTo : newTo+1, 0, moved);
+  if(db==='gaiko'){ saveColOrder(); renderTable(); }
+  else { saveCColOrder(); renderContainerTable(); }
+}
+
+function colDragEnd(){
+  _dragKey=null; _dragDB=null;
+  document.querySelectorAll('th.col-dragging,th.col-drag-over-left,th.col-drag-over-right').forEach(el=>{
+    el.classList.remove('col-dragging','col-drag-over-left','col-drag-over-right');
+  });
+}
+
+/* reset column order */
+function resetColOrder(db){
+  if(db==='gaiko'){
+    COLS.length=0; COLS_DEF.forEach(function(c){COLS.push(Object.assign({},c));});
+    localStorage.removeItem('gs2_col_order');
+    colLabels={};saveColLabels();
+    renderTable();
+  } else {
+    CONTAINER_COLS.length=0; CONTAINER_COLS_DEF.forEach(function(c){CONTAINER_COLS.push(Object.assign({},c));});
+    localStorage.removeItem('gs2_ccol_order');
+    cColLabels={};saveCColLabels();
+    renderContainerTable();
+  }
+}
+
+/* ════════════════════════════════════════
+   CALENDAR DATE POPUP
+════════════════════════════════════════ */
+let _cpState={year:0,month:0,selected:null,targetField:null,targetObj:null,hasTime:true,anchorEl:null};
+
+function openCalPopup(fieldKey, currentVal, anchorEl, objRef, hasTime=true){
+  const now=new Date();
+  let y=now.getFullYear(),m=now.getMonth(),d=null,time='09:00';
+  if(currentVal){
+    const match=currentVal.match(/(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})(?:\s+(\d{1,2}):(\d{2}))?/);
+    if(match){y=+match[1];m=+match[2]-1;d=+match[3];if(match[4])time=`${String(+match[4]).padStart(2,'0')}:${match[5]||'00'}`;}
+  }
+  _cpState={year:y,month:m,selected:d?new Date(y,m,d):null,targetField:fieldKey,targetObj:objRef,hasTime,anchorEl};
+  document.getElementById('cp-time').value=time;
+  document.getElementById('cp-time-row').style.display=hasTime?'flex':'none';
+  renderCalPopup();
+  const popup=document.getElementById('cal-popup');
+  popup.style.display='block';
+  const rect=anchorEl.getBoundingClientRect();
+  let left=rect.left, top=rect.bottom+4;
+  if(left+310>window.innerWidth-8)left=window.innerWidth-318;
+  if(top+380>window.innerHeight-8)top=rect.top-384;
+  popup.style.left=Math.max(8,left)+'px';popup.style.top=Math.max(8,top)+'px';
+}
+
+function renderCalPopup(){
+  var year=_cpState.year, month=_cpState.month, selected=_cpState.selected;
+  const months=['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
+  document.getElementById('cp-month').textContent=`${year}年 ${months[month]}`;
+  const days=document.getElementById('cp-days');days.innerHTML='';
+  const first=new Date(year,month,1).getDay();
+  const total=new Date(year,month+1,0).getDate();
+  const prevTotal=new Date(year,month,0).getDate();
+  const today=new Date();
+  for(let i=0;i<first;i++){
+    const c=document.createElement('div');c.className='cp-day other-month';
+    c.textContent=prevTotal-first+1+i;days.appendChild(c);
+  }
+  for(let d=1;d<=total;d++){
+    const c=document.createElement('div');
+    const dow=(first+d-1)%7;
+    let cls='cp-day';
+    if(dow===0)cls+=' sun';else if(dow===6)cls+=' sat';
+    if(d===today.getDate()&&month===today.getMonth()&&year===today.getFullYear())cls+=' today';
+    if(selected&&d===selected.getDate()&&month===selected.getMonth()&&year===selected.getFullYear())cls+=' selected';
+    c.className=cls;c.textContent=d;
+    c.onclick=()=>{_cpState.selected=new Date(year,month,d);renderCalPopup();};
+    days.appendChild(c);
+  }
+  const remain=42-(first+total);
+  for(let i=1;i<=remain&&remain<7;i++){const c=document.createElement('div');c.className='cp-day other-month';c.textContent=i;days.appendChild(c);}
+}
+document.getElementById('cp-prev').onclick=()=>{_cpState.month--;if(_cpState.month<0){_cpState.month=11;_cpState.year--;}renderCalPopup();};
+document.getElementById('cp-next').onclick=()=>{_cpState.month++;if(_cpState.month>11){_cpState.month=0;_cpState.year++;}renderCalPopup();};
+
+function calPopupConfirm(){
+  if(!_cpState.selected)return;
+  const d=_cpState.selected;
+  const pad=n=>String(n).padStart(2,'0');
+  let val=`${d.getFullYear()}/${pad(d.getMonth()+1)}/${pad(d.getDate())}`;
+  if(_cpState.hasTime){const t=document.getElementById('cp-time').value||'09:00';val+=` ${t}`;}
+  setCalPopupValue(val);
+  closeCalPopup();
+}
+function calPopupToday(){
+  const d=new Date();_cpState.selected=new Date(d.getFullYear(),d.getMonth(),d.getDate());
+  _cpState.year=d.getFullYear();_cpState.month=d.getMonth();renderCalPopup();
+}
+function calPopupClear(){setCalPopupValue('');closeCalPopup();}
+function setCalPopupValue(val){
+  var targetField=_cpState.targetField, targetObj=_cpState.targetObj;
+  if(targetObj)targetObj[targetField]=val;
+  const el=document.getElementById('df-'+targetField)||document.getElementById('cdf-'+targetField)||document.getElementById('nf-'+targetField)||document.getElementById('ncf-'+targetField);
+  if(el){el.value=val;el.textContent=val||'クリックして日付を選択…';}
+  // update display in prop-val
+  const pv=document.getElementById('calval-'+targetField);if(pv)pv.textContent=val||'クリックして日付を選択…';
+}
+function closeCalPopup(){document.getElementById('cal-popup').style.display='none';}
+document.addEventListener('mousedown',e=>{
+  const p=document.getElementById('cal-popup');
+  if(p.style.display==='block'&&!p.contains(e.target)&&!e.target.closest('.cal-date-trigger'))closeCalPopup();
+});
+
+/* ════════════════════════════════════════
+   SHIP ICON (Base64 per row)
+════════════════════════════════════════ */
+let shipIcons=JSON.parse(localStorage.getItem('gs2_icons')||'{}');
+/* saveIcons: Firebase連携セクションで定義 */
+
+function renderShipIconSection(rowId, canEdit){
+  const icon=shipIcons[rowId]||'';
+  if(canEdit){
+    return `<div class="ship-icon-wrap">
+      ${icon
+        ?`<img class="ship-icon-img" src="${icon}" alt="船アイコン" onclick="triggerIconUpload('${rowId}')" title="クリックして変更">`
+        :`<div class="ship-icon-placeholder" onclick="triggerIconUpload('${rowId}')" title="アイコンを追加">🚢</div>`
+      }
+      <div class="ship-icon-info">
+        <b>${icon?'アイコン設定済み':'アイコン未設定'}</b><br>
+        クリックして画像を${icon?'変更':'追加'}<br>
+        <span style="font-size:10px">JPG/PNG推奨・自動リサイズ</span>
+        ${icon?`<br><span onclick="removeShipIcon('${rowId}')" style="color:#c0392b;cursor:pointer;font-size:11px">削除</span>`:''}
+      </div>
+      <input type="file" accept="image/*" class="icon-upload-input" id="icon-inp-${rowId}" onchange="handleIconUpload(event,'${rowId}')">
+    </div>`;
+  } else {
+    return icon?`<div class="ship-icon-wrap"><img class="ship-icon-img" src="${icon}" alt="船アイコン" style="cursor:default"></div>`:'';
+  }
+}
+
+function triggerIconUpload(rowId){const _e2=document.getElementById('icon-inp-'+rowId);if(_e2)_e2.click();}
+function handleIconUpload(e,rowId){
+  const file=e.target.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    const img=new Image();
+    img.onload=()=>{
+      const canvas=document.createElement('canvas');
+      const max=120;const r=Math.min(max/img.width,max/img.height,1);
+      canvas.width=img.width*r;canvas.height=img.height*r;
+      canvas.getContext('2d').drawImage(img,0,0,canvas.width,canvas.height);
+      shipIcons[rowId]=canvas.toDataURL('image/jpeg',0.85);
+      saveIcons();
+      // re-render icon section
+      const wrap=document.getElementById('icon-wrap-'+rowId);
+      if(wrap)wrap.outerHTML=`<div id="icon-wrap-${rowId}">${renderShipIconSection(rowId,true)}</div>`;
+      // force re-open to refresh
+      const row=rows.find(r=>r.id===rowId)||cRows.find(r=>r.id===rowId);
+      if(row&&(_editRow && _editRow.id===rowId))renderDetailModal();
+      else if(row&&(_editCRow && _editCRow.id===rowId)){}
+    };
+    img.src=ev.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+function removeShipIcon(rowId){
+  delete shipIcons[rowId];saveIcons();
+  if((_editRow && _editRow.id===rowId))renderDetailModal();
+}
+
+/* ════════════════════════════════════════
+   SUISENIN SUBTABLE (per row)
+════════════════════════════════════════ */
+let suisenin=JSON.parse(localStorage.getItem('gs2_sui')||'{}');
+/* saveSui: Firebase連携セクションで定義 */
+
+function getSuiRows(rowId){return suisenin[rowId]||[];}
+function addSuiRow(rowId){
+  if(!suisenin[rowId])suisenin[rowId]=[];
+  suisenin[rowId].push({id:'s'+Date.now(),biko:'',sui_time:'',sui_type:'',noriba:'',hikifune:''});
+  saveSui();renderSuiTable(rowId);
+}
+function delSuiRow(rowId,suid){
+  suisenin[rowId]=(suisenin[rowId]||[]).filter(r=>r.id!==suid);
+  saveSui();renderSuiTable(rowId);
+}
+function updateSuiCell(rowId,suid,key,val){
+  const row=(suisenin[rowId]||[]).find(r=>r.id===suid);
+  if(row){row[key]=val;saveSui();}
+}
+/* ── サブテーブル: OPTIONS統合（編集・追加・削除・色変更はメインピッカーで） ── */
+/* SUI_OPTS廃止 → OPTIONS[field] を直接参照 */
+function suiOptColor(field, val){
+  const o=(OPTIONS[field]||[]).find(x=>x.v===val);return o?o.c:'c14';
+}
+
+/* セルをクリックするとピッカーが開く */
+function openSuiPicker(rowId, suid, field, anchorEl){
+  SINGLE_SELECT.add(field); // 単一選択
+  const curRow = (suisenin[rowId]||[]).find(r=>r.id===suid);
+  const cur = curRow ? (curRow[field]||'') : '';
+  openPicker(field, cur, anchorEl, val=>{
+    updateSuiCell(rowId, suid, field, val);
+    renderSuiTable(rowId);
+  });
+}
+
+/* サブテーブル列ヘッダーのカスタムラベル */
+var SUI_COL_DEFAULTS = {biko:'備考', sui_time:'水先人（時）', sui_type:'水先人（種）', noriba:'乗下船ポイント', hikifune:'曳船'};
+var suiColLabels = JSON.parse(localStorage.getItem('gs2_sui_col_labels')||'null') || {};
+function saveSuiColLabels(){ localStorage.setItem('gs2_sui_col_labels', JSON.stringify(suiColLabels)); }
+function getSuiColLabel(key){ return suiColLabels[key] || SUI_COL_DEFAULTS[key] || key; }
+
+function makeSuiTh(key){
+  var th = document.createElement('th');
+  var span = document.createElement('span');
+  span.textContent = getSuiColLabel(key);
+  span.title = 'ダブルタップで列名を変更';
+  span.style.cursor = 'pointer';
+  if(!isGuest){
+    addDoubleTap(span, function(){
+      var cur = span.textContent;
+      var inp = document.createElement('input');
+      inp.value = cur;
+      inp.style.cssText = 'border:none;outline:none;background:transparent;font-family:var(--font);font-size:11px;font-weight:600;color:var(--t3);max-width:120px;border-bottom:1px solid var(--blue);padding:0;letter-spacing:.05em';
+      inp.addEventListener('click', function(e){ e.stopPropagation(); });
+      inp.addEventListener('touchstart', function(e){ e.stopPropagation(); });
+      span.replaceWith(inp); inp.focus(); inp.select();
+      var committed = false;
+      var commit = function(){
+        if(committed) return; committed = true;
+        var v = inp.value.trim();
+        if(v && v !== cur){ suiColLabels[key]=v; saveSuiColLabels(); span.textContent=v; }
+        else if(!v){ delete suiColLabels[key]; saveSuiColLabels(); span.textContent=SUI_COL_DEFAULTS[key]||key; }
+        else { span.textContent = cur; }
+        inp.replaceWith(span);
+      };
+      inp.addEventListener('blur', commit);
+      inp.addEventListener('keydown', function(e2){
+        e2.stopPropagation();
+        if(e2.key==='Enter'){ inp.blur(); }
+        if(e2.key==='Escape'){ committed=true; inp.replaceWith(span); }
+      });
+    });
+  }
+  th.appendChild(span);
+  return th;
+}
+
+function renderSuiTable(rowId){
+  const wrap=document.getElementById('sui-wrap-'+rowId);if(!wrap)return;
+  const data=getSuiRows(rowId);
+  const canEdit=!isGuest;
+
+  const cellHtml=(rowId,suid,field,val)=>{
+    const color=suiOptColor(field,val);
+    if(canEdit){
+      return `<div class="sui-cell-pick" onclick="openSuiPicker('${rowId}','${suid}','${field}',this)">
+        ${val?`<span class="badge ${color}">${val}</span>`:'<span class="sui-pick-placeholder">選択…</span>'}
+      </div>`;
+    } else {
+      return val?`<span class="badge ${suiOptColor(field,val)}">${val}</span>`:'—';
+    }
+  };
+
+  // Build table via DOM for editable headers
+  var tableWrap = document.createElement('div');
+  tableWrap.className = 'subtable-wrap';
+  var table = document.createElement('table');
+  table.className = 'subtable';
+
+  // thead
+  var thead = document.createElement('thead');
+  var htr = document.createElement('tr');
+  ['biko','sui_time','sui_type','noriba','hikifune'].forEach(function(k){
+    htr.appendChild(makeSuiTh(k));
+  });
+  if(canEdit){ var dth=document.createElement('th');dth.style.width='32px';htr.appendChild(dth); }
+  thead.appendChild(htr);
+  table.appendChild(thead);
+
+  // tbody
+  var tbody = document.createElement('tbody');
+  data.forEach(function(r){
+    var tr = document.createElement('tr');
+
+    // 備考 (text input)
+    var td0 = document.createElement('td');
+    if(canEdit){
+      var inp = document.createElement('input');
+      inp.className = 'subtable-input';
+      inp.value = r.biko||'';
+      inp.placeholder = '—';
+      inp.oninput = (function(rid,sid){ return function(){ updateSuiCell(rid,sid,'biko',this.value); }; })(rowId,r.id);
+      td0.appendChild(inp);
+    } else { td0.textContent = r.biko||'—'; }
+    tr.appendChild(td0);
+
+    // select cells
+    ['sui_time','sui_type','noriba','hikifune'].forEach(function(field){
+      var td = document.createElement('td');
+      td.innerHTML = cellHtml(rowId, r.id, field, r[field]||'');
+      tr.appendChild(td);
+    });
+
+    // delete button
+    if(canEdit){
+      var tdd = document.createElement('td');
+      var btn = document.createElement('button');
+      btn.className = 'subtable-del';
+      btn.textContent = '🗑';
+      btn.onclick = (function(rid,sid){ return function(){ delSuiRow(rid,sid); }; })(rowId,r.id);
+      tdd.appendChild(btn);
+      tr.appendChild(tdd);
+    }
+    tbody.appendChild(tr);
+  });
+  table.appendChild(tbody);
+  tableWrap.appendChild(table);
+
+  wrap.innerHTML = '';
+  wrap.appendChild(tableWrap);
+  if(canEdit){
+    var addBtn = document.createElement('button');
+    addBtn.className = 'subtable-add-row';
+    addBtn.innerHTML = '<span>＋</span> 行を追加';
+    addBtn.onclick = function(){ addSuiRow(rowId); };
+    wrap.appendChild(addBtn);
+  }
+}
+
+/* ════════════════════════════════════════
+   GUEST DETAIL VIEW
+════════════════════════════════════════ */
+function showGuestDetail(id,db){
+  const row=db==='gaiko'?rows.find(r=>r.id===id):cRows.find(r=>r.id===id);
+  if(!row)return;
+  // Build a read-only view of the row
+  const fields=db==='gaiko'?[
+    {l:'ETA',v:row.eta},{l:'ETB',v:row.etb},{l:'ETD',v:row.etd},
+    {l:'貨物名',v:row.cargo},{l:'担当者',v:row.tanto},{l:'桟橋名',v:row.berth},
+    {l:'荷役予定',v:row.niyaku},{l:'停泊錨地',v:row.tomari},
+    {l:'前港',v:row.maeko},{l:'次港',v:row.tsugiko},{l:'備考',v:row.biko},
+    {l:'情報最終更新日時',v:row.upd_at},
+  ]:[
+    {l:'CUT日',v:row.cut},{l:'ETA',v:row.eta},{l:'ETB',v:row.etb},{l:'ETD',v:row.etd},
+    {l:'スケジュール',v:row.schedule},{l:'前港',v:row.maeko_c},{l:'次港',v:row.tsugiko_c},
+    {l:'代理店担当者',v:row.dairi},{l:'換算レート',v:row.rate?'¥'+row.rate:''},{l:'停泊錨地',v:row.tomari_c},
+    {l:'接岸方向',v:row.sessho},
+    {l:'最新動静更新日時',v:row.upd_at_c},
+  ];
+  const icon=shipIcons[row.id];
+  const iconHtml=icon?`<img src="${icon}" style="width:48px;height:48px;border-radius:6px;object-fit:cover;border:1px solid var(--border2);flex-shrink:0">`:'';
+  const rows_html=fields.filter(f=>f.v).map(f=>`
+    <div class="prop-row">
+      <div class="prop-key" style="color:var(--t3);font-size:13px">${f.l}</div>
+      <div class="prop-val" style="font-size:13px;cursor:default">${f.v}</div>
+    </div>`).join('');
+  const suiData=getSuiRows(row.id);
+  const suiHtml=suiData.length?`
+    <div class="subtable-section">
+      <div class="subtable-title">🚤 水先人 曳船 利用情報</div>
+      <div class="subtable-wrap"><table class="subtable">
+        <thead><tr><th>備考</th><th>水先人（時）</th><th>水先人（種）</th><th>乗下船ポイント</th><th>曳船</th></tr></thead>
+        <tbody>${suiData.map(r=>`<tr><td>${r.biko||'—'}</td><td>${r.sui_time||'—'}</td><td>${r.sui_type||'—'}</td><td>${r.noriba||'—'}</td><td>${r.hikifune||'—'}</td></tr>`).join('')}</tbody>
+      </table></div>
+    </div>`:'';
+
+  showOverlay(`<div class="modal">
+    <div class="modal-top">
+      <div style="display:flex;align-items:center;gap:10px;flex:1">
+        ${iconHtml}
+        <div style="font-size:20px;font-weight:700;color:var(--text)">${row.name||'無題'}</div>
+      </div>
+      <button class="modal-close-btn" onclick="closeOverlay()">✕</button>
+    </div>
+    <div class="prop-list">${rows_html}${suiHtml}</div>
+  </div>`);
+}
+
+/* ════════════════════════════════════════
+   MANUAL MODAL
+════════════════════════════════════════ */
+function showManualModal(){
+  var h3 = function(icon,title){ return '<h3 style="font-size:14px;font-weight:700;color:var(--text);margin:20px 0 8px;border-bottom:2px solid var(--border);padding-bottom:6px">'+icon+' '+title+'</h3>'; };
+  var li = function(){ var items=Array.prototype.slice.call(arguments); return '<ul style="padding-left:18px;margin-bottom:4px">'+items.map(function(i){ return '<li style="margin-bottom:4px">'+i+'</li>'; }).join('')+'</ul>'; };
+  var b = function(t){ return '<b style="color:var(--text)">'+t+'</b>'; };
+  var badge = function(t,c){ if(!c) c='var(--blue)'; return '<span style="background:'+c+'20;color:'+c+';font-size:11px;font-weight:600;padding:1px 7px;border-radius:10px;white-space:nowrap">'+t+'</span>'; };
+  var tip = function(t,type){ 
+    if(!type) type='blue';
+    var bgCol='#e8f4ff', fgCol='#1a4a8a';
+    if(type==='green'){ bgCol='#e6f7f1'; fgCol='#0a5a3c'; }
+    else if(type==='orange'){ bgCol='#fff8e0'; fgCol='#7a5000'; }
+    return '<div style="background:'+bgCol+';border-left:3px solid '+fgCol+';padding:8px 12px;border-radius:0 5px 5px 0;margin:8px 0;font-size:12px;color:'+fgCol+'">'+t+'</div>';
+  };
+  var kbd = function(t){ return '<kbd style="background:var(--bg);border:1px solid var(--border2);border-radius:3px;padding:1px 6px;font-size:11px">'+t+'</kbd>'; };
+
+  showOverlay(`<div class="modal" style="width:680px;max-height:88vh;display:flex;flex-direction:column">
+    <div class="modal-top" style="position:sticky;top:0;background:var(--bg);z-index:1;border-bottom:1px solid var(--border);padding-bottom:12px;flex-shrink:0">
+      <div style="font-size:18px;font-weight:700;flex:1">📖 利用マニュアル</div>
+      <button class="modal-close-btn" onclick="closeOverlay()">✕</button>
+    </div>
+    <div style="padding:16px 24px 28px;overflow-y:auto;font-size:13px;line-height:1.8;color:var(--t2);flex:1">
+
+      <div style="background:var(--blue);color:#fff;border-radius:8px;padding:14px 16px;margin-bottom:20px">
+        🚢 <b>外航船 動静管理システム</b> — 最新操作ガイド
+      </div>
+
+      ${h3('🔐','ログイン・ロール')}
+      <table style="width:100%;border-collapse:collapse;font-size:12px;margin-bottom:8px">
+        <tr style="background:var(--bg2)"><th style="padding:6px 10px;text-align:left;border:1px solid var(--border)">ロール</th><th style="padding:6px 10px;text-align:left;border:1px solid var(--border)">できること</th></tr>
+        <tr><td style="padding:5px 10px;border:1px solid var(--border)">${badge('管理者','#c0392b')}</td><td style="padding:5px 10px;border:1px solid var(--border)">全操作 + ユーザー管理</td></tr>
+        <tr><td style="padding:5px 10px;border:1px solid var(--border)">${badge('編集者','var(--blue)')}</td><td style="padding:5px 10px;border:1px solid var(--border)">レコード追加・編集・削除</td></tr>
+        <tr><td style="padding:5px 10px;border:1px solid var(--border)">${badge('閲覧者','#0f7b55')}</td><td style="padding:5px 10px;border:1px solid var(--border)">閲覧のみ（編集・削除不可）</td></tr>
+      </table>
+      ${tip('💡 管理者画面でユーザーの追加・削除・ロール変更が可能です')}
+
+      ${h3('🗃️','画面構成')}
+      ${li(
+        `${b('サイドバー（左）')}：🚢 外航船 動静一覧 / 📦 外航コンテナ船 動静表 を切り替え`,
+        `${b('☰ ボタン')}：サイドバーの開閉`,
+        `${b('ツールバー')}：⊞テーブル / 📅カレンダー切替、🔍検索、↺列順リセット、＋新規`,
+        `${b('フィルターバー')}：船名・担当者・貨物名（外航船）/ スケジュール（コンテナ）で絞り込み`
+      )}
+
+      ${h3('🚢','外航船 動静一覧')}
+      ${li(
+        `${b('主な列')}：船名/Voy NO.・ETA・ETB・ETD・貨物名・担当者・桟橋名・荷役予定・停泊錨地・前港・次港・ISPS/RPM/NACCS各種・とん税・備考など`,
+        `${b('フィルター')}：船名・担当者・貨物名で絞り込み`
+      )}
+
+      ${h3('📦','外航コンテナ船 動静表')}
+      ${li(
+        `${b('主な列')}：Name・CUT日・ETA・ETB・ETD・スケジュール・前港・次港・代理店担当者・換算レート・停泊錨地・接岸方向・ISPS/NACCS各種・とん税区分・積/揚リスト通関など`,
+        `${b('カレンダービュー')}：ツールバーの📅ボタンで切り替え。ETAの日付に船名チップが表示される`,
+        `◀ ▶ で月移動、「今月」ボタンで当月へ`
+      )}
+
+      ${h3('✏️','レコード追加・編集')}
+      ${li(
+        `${b('新規追加')}：ツールバーの「＋ 新規」またはテーブル最下部の「＋ 新規」をタップ`,
+        `${b('詳細を開く')}：テーブルの行をタップ → 詳細モーダルが開く`,
+        `${b('日付入力')}：日付フィールドをタップ → カレンダーポップアップで日付・時刻を選択 → 「確定」`,
+        `${b('選択式フィールド')}：タップでピッカーが開く。選択肢をホバー（長押し）で 🎨色変更 ✏️名前変更 🗑削除 が可能`,
+        `${b('船アイコン')}：詳細モーダル上部の🚢枠をタップ → 画像を選択 → テーブル行にも反映`,
+        `${b('保存')}：「保存」ボタンで確定。情報最終更新日時とログインユーザー名が自動セット`,
+        `${b('チェックボックス')}：テーブル行でも直接タップで切り替え可能（自動保存・タイムスタンプ更新）`
+      )}
+
+      ${h3('🚤','水先人 曳船 利用情報（外航船のみ）')}
+      ${li(
+        `詳細モーダル下部のサブテーブルで入出港ごとの水先人・曳船情報を管理`,
+        `${b('列')}：備考（テキスト）・水先人（時）・水先人（種）・乗下船ポイント・曳船（各選択式）`,
+        `「＋ 行を追加」で複数行登録可能。🗑ボタンで行削除`,
+        `各列の選択肢もピッカーで追加・編集・削除・色変更が可能`
+      )}
+      ${tip('💡 サブテーブルの列ヘッダーも素早く2回タップで名称変更できます', 'green')}
+
+      ${h3('⚙️','項目名・列のカスタマイズ')}
+      ${li(
+        `${b('列名変更')}：テーブルの列ヘッダーのタイトル部分を ${b('素早く2回タップ')} → 入力 → 完了キーで確定`,
+        `${b('詳細モーダルの項目名変更')}：詳細モーダル内の項目名（左側ラベル）を ${b('素早く2回タップ')} → 入力 → 確定`,
+        `${b('列幅変更')}：列ヘッダー右端をドラッグ`,
+        `${b('列の並び替え')}：列ヘッダー左端の ⠿ をドラッグ＆ドロップで移動`,
+        `${b('↺ リセット')}：ツールバーの↺ボタンで列の並び順・列名を初期値に戻す`
+      )}
+      ${tip('💡 カスタム設定はブラウザに自動保存されます', 'green')}
+
+      ${h3('👥','ユーザー管理（管理者のみ）')}
+      ${li(
+        `サイドバー下部のユーザー名 または 右上アバターをタップ → ユーザー管理画面`,
+        `ユーザーの追加（名前・パスワード・ロール設定）・削除が可能`,
+        `ロール：${badge('管理者','#c0392b')} ${badge('編集者','var(--blue)')} ${badge('閲覧者','#0f7b55')}`,
+        `閲覧者アカウントのID・パスワードを外部関係者に渡すことで、閲覧専用アクセスを付与できます`
+      )}
+
+      ${h3('⌨️','キーボードショートカット')}
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+        <div style="background:var(--bg2);padding:6px 10px;border-radius:4px;font-size:12px">${kbd('⌘K')} / ${kbd('Ctrl+K')} クイック検索</div>
+        <div style="background:var(--bg2);padding:6px 10px;border-radius:4px;font-size:12px">${kbd('Esc')} モーダルを閉じる</div>
+        <div style="background:var(--bg2);padding:6px 10px;border-radius:4px;font-size:12px">${kbd('Enter')} ログイン確定</div>
+        <div style="background:var(--bg2);padding:6px 10px;border-radius:4px;font-size:12px">${kbd('Enter')} 列名/項目名編集を確定</div>
+      </div>
+
+    </div>
+  </div>`);
+}
+
+/* ════════════════════════════════════════
+   DOUBLE TAP / DOUBLE CLICK ユーティリティ
+   PC: dblclick  /  モバイル: 350ms以内の2回タップ
+════════════════════════════════════════ */
+function addDoubleTap(el, handler){
+  // PC
+  el.addEventListener('dblclick', e=>{ e.stopPropagation(); e.preventDefault(); handler(e); });
+  // モバイル
+  let _lastTap=0;
+  el.addEventListener('touchend', e=>{
+    const now=Date.now();
+    if(now - _lastTap < 350){
+      e.stopPropagation(); e.preventDefault();
+      handler(e);
+      _lastTap=0;
+    } else {
+      _lastTap=now;
+    }
+  });
+}
+
+/* ════════════════════════════════════════
+   CONFIRM DIALOG (confirm()の代替 - iOS Safari iframe対応)
+════════════════════════════════════════ */
+function showConfirm(msg, onOk){
+  const div=document.createElement('div');
+  div.id='confirm-ov';
+  div.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px';
+  div.innerHTML=`<div style="background:var(--bg);border-radius:10px;padding:24px 20px;max-width:320px;width:100%;box-shadow:var(--shadow);font-family:var(--font)">
+    <div style="font-size:15px;font-weight:600;color:var(--text);margin-bottom:8px">確認</div>
+    <div style="font-size:14px;color:var(--t2);margin-bottom:20px">${msg}</div>
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button onclick="document.getElementById('confirm-ov').remove()" style="padding:7px 18px;border-radius:5px;border:1px solid var(--border2);background:none;font-family:var(--font);font-size:13px;cursor:pointer;color:var(--t2)">キャンセル</button>
+      <button id="confirm-ok-btn" style="padding:7px 18px;border-radius:5px;border:none;background:#c0392b;color:#fff;font-family:var(--font);font-size:13px;cursor:pointer;font-weight:600">削除</button>
+    </div>
+  </div>`;
+  document.body.appendChild(div);
+  document.getElementById('confirm-ok-btn').onclick=()=>{
+    div.remove();
+    onOk();
+  };
+}
+
+/* モーダル内の prop-key-editable 要素にダブルタップ編集を付与 */
+function bindPropKeyEditable(){
+  var els = document.querySelectorAll('.prop-key-editable');
+  for(var i=0; i<els.length; i++){
+    (function(keyEl){
+      var key = keyEl.dataset.field;
+      var defaultLabel = keyEl.dataset.default || '';
+      var lblSpan = keyEl.querySelector('.prop-key-lbl');
+      if(!lblSpan || lblSpan._doubleTapBound) return;
+      lblSpan._doubleTapBound = true;
+      addDoubleTap(lblSpan, function(){
+        var cur = lblSpan.textContent;
+        var inp = document.createElement('input');
+        inp.value = cur;
+        inp.style.cssText = 'border:none;outline:none;background:transparent;font-family:var(--font);font-size:13px;color:var(--text);max-width:170px;border-bottom:1px solid var(--blue);padding:0';
+        inp.addEventListener('click', function(e){ e.stopPropagation(); });
+        inp.addEventListener('touchstart', function(e){ e.stopPropagation(); });
+        lblSpan.replaceWith(inp);
+        inp.focus(); inp.select();
+        var committed = false;
+        var commit = function(){
+          if(committed) return; committed = true;
+          var v = inp.value.trim();
+          if(v && v !== cur){ propLabels[key]=v; savePropLabels(); lblSpan.textContent=v; }
+          else if(!v){ delete propLabels[key]; savePropLabels(); lblSpan.textContent=defaultLabel; }
+          else { lblSpan.textContent=cur; }
+          inp.replaceWith(lblSpan);
+        };
+        inp.addEventListener('blur', commit);
+        inp.addEventListener('keydown', function(e2){
+          e2.stopPropagation();
+          if(e2.key==='Enter'){ inp.blur(); }
+          if(e2.key==='Escape'){ committed=true; inp.replaceWith(lblSpan); }
+        });
+      });
+    })(els[i]);
+  }
+}
+
+/* ════════════════════════════════════════
+   FIREBASE REST API 連携（SDK不要）
+   fetch + Server-Sent Events でリアルタイム同期
+════════════════════════════════════════ */
+var _fbUrl = '';        // Firebase Database URL
+var _fbEnabled = false;
+var _fbSseMap = {};     // SSEコネクション管理 {key: EventSource}
+var _fbWriteTimer = {}; // デバウンス用タイマー
+
+/* 同期インジケーター */
+function fbIndicator(state, msg){
+  var el = document.getElementById('fb-indicator');
+  if(!el) return;
+  el.className = 'fb-indicator show ' + state;
+  el.textContent = msg;
+  if(state === 'sync') setTimeout(function(){ el.className='fb-indicator'; }, 2500);
+}
+
+/* ── REST: 書き込み（PUT） ── */
+function fbPut(key, data, cb){
+  if(!_fbEnabled || !_fbUrl) return;
+  var url = _fbUrl + '/' + key + '.json';
+  fetch(url, {
+    method: 'PUT',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify(data)
+  }).then(function(r){
+    if(!r.ok) throw new Error('HTTP ' + r.status);
+    if(cb) cb();
+    fbIndicator('sync', '✓ 保存完了');
+  }).catch(function(e){
+    fbIndicator('err', '⚠ 保存エラー: ' + e.message);
+  });
+}
+
+/* ── REST: 読み込み（GET） ── */
+function fbGet(key, cb){
+  if(!_fbEnabled || !_fbUrl) return;
+  var url = _fbUrl + '/' + key + '.json';
+  fetch(url).then(function(r){
+    if(!r.ok) throw new Error('HTTP ' + r.status);
+    return r.json();
+  }).then(function(data){ if(cb) cb(data); })
+  .catch(function(e){ fbIndicator('err', '⚠ 読込エラー: ' + e.message); });
+}
+
+/* ── SSE: リアルタイム監視 ── */
+function fbWatch(key, cb){
+  if(!_fbEnabled || !_fbUrl) return;
+  // 既存SSEを切断
+  if(_fbSseMap[key]){ try{ _fbSseMap[key].close(); }catch(e){} }
+  var url = _fbUrl + '/' + key + '.json';
+  try{
+    var es = new EventSource(url);
+    _fbSseMap[key] = es;
+    es.addEventListener('put', function(e){
+      try{
+        var d = JSON.parse(e.data);
+        if(d && d.data !== undefined) cb(d.data);
+      }catch(ex){}
+    });
+    es.addEventListener('patch', function(e){
+      try{
+        var d = JSON.parse(e.data);
+        if(d && d.data !== undefined) cb(d.data);
+      }catch(ex){}
+    });
+    es.onerror = function(){
+      fbIndicator('err', '⚠ 接続が切れました。再接続中…');
+      setTimeout(function(){ fbWatch(key, cb); }, 5000);
+    };
+  } catch(e){
+    // SSE非対応環境（古いブラウザ）→ポーリングにフォールバック
+    fbPoll(key, cb);
+  }
+}
+
+/* ── ポーリング（SSE非対応時のフォールバック） ── */
+var _pollTimers = {};
+function fbPoll(key, cb){
+  if(_pollTimers[key]) clearInterval(_pollTimers[key]);
+  var lastVal = null;
+  _pollTimers[key] = setInterval(function(){
+    fbGet(key, function(data){
+      var str = JSON.stringify(data);
+      if(str !== lastVal){ lastVal = str; cb(data); }
+    });
+  }, 8000); // 8秒ごと
+}
+
+/* ── デバウンス付き書き込み ── */
+function fbDebouncedPut(key, getData, delay){
+  if(_fbWriteTimer[key]) clearTimeout(_fbWriteTimer[key]);
+  _fbWriteTimer[key] = setTimeout(function(){
+    fbPut(key, getData());
+  }, delay || 800);
+}
+
+/* ── Firebase初期化 ── */
+function initFirebase(urlOverride){
+  var url = urlOverride
+    || (document.getElementById('fb-url-input') ? document.getElementById('fb-url-input').value.trim() : '')
+    || (document.getElementById('fb-url-input2') ? document.getElementById('fb-url-input2').value.trim() : '');
+  if(!url || !url.startsWith('http')){
+    alert('有効なFirebase Database URLを入力してください\n例: https://xxx-default-rtdb.firebaseio.com');
+    return;
+  }
+  url = url.replace(/\/$/, '');
+  fbIndicator('sync', '🔥 接続テスト中…');
+
+  // 接続テスト（GETリクエスト）
+  fetch(url + '/.json?shallow=true', {method:'GET', mode:'cors'})
+    .then(function(r){
+      if(r.status === 401 || r.status === 403){
+        throw new Error('権限エラー(' + r.status + ')\nFirebaseコンソールで\n".read": true\n".write": true\nに設定してください');
+      }
+      if(!r.ok) throw new Error('HTTPエラー: ' + r.status);
+      return r.text();
+    }).then(function(){
+      _fbUrl = url;
+      _fbEnabled = true;
+      localStorage.setItem('gs2_fb_url', url);
+      localStorage.removeItem('gs2_fb_skip');
+      var el = document.getElementById('fb-setup'); if(el) el.style.display='none';
+      fbIndicator('sync', '🔥 Firebase接続完了！');
+      _fbAutoDisconnected = false;
+      setupFirebaseListeners();
+      fbInitialUpload();
+      fbResetIdleTimer(); // アイドルタイマー開始
+      resetIdleTimer(); // アイドルタイマー開始
+    }).catch(function(e){
+      _fbEnabled = false;
+      fbIndicator('err', '⚠ 接続失敗');
+      alert('Firebase接続エラー:\n\n' + e.message + '\n\n確認事項:\n1. URLが正しいか確認\n   https://ichizoproject2-default-rtdb.firebaseio.com\n2. Firebaseのセキュリティルールを確認\n   .read: true, .write: true\n3. インターネット接続を確認');
+    });
+}
+
+function skipFirebase(){
+  localStorage.setItem('gs2_fb_skip', '1');
+  var el = document.getElementById('fb-setup'); if(el) el.style.display='none';
+  fbIndicator('off', '📴 ローカル保存のみ');
+}
+
+/* ── リスナー設定 ── */
+function setupFirebaseListeners(){
+  // 外航船
+  fbWatch('rows', function(val){
+    if(!val) return;
+    var arr = Array.isArray(val) ? val : Object.values(val);
+    if(JSON.stringify(arr) !== JSON.stringify(rows)){
+      rows = arr;
+      refreshFilters(); renderTable();
+      fbIndicator('sync', '✓ 外航船データ更新');
+    }
+  });
+  // コンテナ船
+  fbWatch('crows', function(val){
+    if(!val) return;
+    var arr = Array.isArray(val) ? val : Object.values(val);
+    if(JSON.stringify(arr) !== JSON.stringify(cRows)){
+      cRows = arr;
+      if(currentDB === 'container') renderContainerTable();
+      fbIndicator('sync', '✓ コンテナ船データ更新');
+    }
+  });
+  // ユーザー
+  fbWatch('users', function(val){
+    if(!val) return;
+    var arr = Array.isArray(val) ? val : Object.values(val);
+    if(JSON.stringify(arr) !== JSON.stringify(users)) users = arr;
+  });
+  // 選択肢
+  fbWatch('options', function(val){
+    if(!val) return;
+    if(JSON.stringify(val) !== JSON.stringify(OPTIONS)){
+      OPTIONS = val;
+      if(currentDB === 'gaiko') renderTable(); else renderContainerTable();
+    }
+  });
+  // 船アイコン
+  fbWatch('icons', function(val){ if(val) shipIcons = val; });
+  // 水先人
+  fbWatch('suisenin', function(val){ if(val) suisenin = val; });
+
+  fbIndicator('sync', '🔥 リアルタイム共有中');
+}
+
+/* ── 初回接続時にローカルデータをアップロード ── */
+function fbInitialUpload(){
+  fbGet('rows', function(val){
+    if(!val && rows.length > 0) fbPut('rows', rows);
+  });
+  fbGet('crows', function(val){
+    if(!val && cRows.length > 0) fbPut('crows', cRows);
+  });
+  fbGet('users', function(val){
+    if(!val) fbPut('users', users);
+  });
+  fbGet('options', function(val){
+    if(!val) fbPut('options', OPTIONS);
+  });
+}
+
+/* ── 保存関数（Firebase対応） ── */
+function saveRows(){
+  localStorage.setItem('gs2_rows', JSON.stringify(rows));
+  if(_fbEnabled){ fbDebouncedPut('rows', function(){ return rows; }); fbResetIdleTimer(); }
+}
+function saveCRows(){
+  localStorage.setItem('gs2_crows', JSON.stringify(cRows));
+  if(_fbEnabled){ fbDebouncedPut('crows', function(){ return cRows; }); fbResetIdleTimer(); }
+}
+function saveUsers(){
+  localStorage.setItem('gs2_users', JSON.stringify(users));
+  if(_fbEnabled){ fbDebouncedPut('users', function(){ return users; }, 300); fbResetIdleTimer(); }
+}
+function saveOptions(){
+  localStorage.setItem('gs2_opts', JSON.stringify(OPTIONS));
+  if(_fbEnabled){ fbDebouncedPut('options', function(){ return OPTIONS; }, 300); fbResetIdleTimer(); }
+}
+function saveIcons(){
+  localStorage.setItem('gs2_icons', JSON.stringify(shipIcons));
+  if(_fbEnabled){ fbDebouncedPut('icons', function(){ return shipIcons; }, 500); fbResetIdleTimer(); }
+}
+function saveSui(){
+  localStorage.setItem('gs2_sui', JSON.stringify(suisenin));
+  if(_fbEnabled){ fbDebouncedPut('suisenin', function(){ return suisenin; }, 300); fbResetIdleTimer(); }
+}
+
+/* ── Firebase設定モーダル ── */
+function showFbSettingsModal(){
+  var cur = localStorage.getItem('gs2_fb_url') || '';
+  var status = _fbEnabled ? '🟢 接続中' : (_idleSuspended ? '💤 一時停止中（操作で再接続）' : '🔴 未接続');
+  showOverlay('<div class="modal" style="width:500px">' +
+    '<div class="modal-top"><div style="font-size:16px;font-weight:700;flex:1">🔥 Firebase 接続設定</div>' +
+    '<button class="modal-close-btn" onclick="closeOverlay()">✕</button></div>' +
+    '<div style="padding:16px 20px 8px">' +
+    '<div class="fb-step">リアルタイムデータ共有の設定<br>現在: <b>' + status + '</b>' +
+    '<br><span style="font-size:11px;color:#888">15分間無操作で自動切断 → 次の操作で自動再接続</span>' +
+    (cur ? '<br><span style="font-size:11px;color:#888">' + cur + '</span>' : '') + '</div>' +
+    '<label style="font-size:12px;font-weight:600;color:#888;display:block;margin:10px 0 4px">Firebase Database URL</label>' +
+    '<input id="fb-url-input2" style="width:100%;padding:9px 12px;border:1.5px solid #e0e0e0;border-radius:6px;font-family:var(--font);font-size:13px;outline:none;box-sizing:border-box" value="' + cur + '" placeholder="https://xxx-default-rtdb.firebaseio.com">' +
+    '</div>' +
+    '<div class="modal-actions">' +
+    '<button class="ma-btn danger" onclick="disconnectFirebase()">完全切断</button>' +
+    '<button class="ma-btn" onclick="closeOverlay()">キャンセル</button>' +
+    '<button class="ma-btn primary" onclick="reconnectFirebase()">接続</button>' +
+    '</div></div>');
+}
+
+function reconnectFirebase(){
+  var inp = document.getElementById('fb-url-input2');
+  var url = inp ? inp.value.trim() : '';
+  closeOverlay();
+  if(url) initFirebase(url);
+}
+
+function disconnectFirebase(){
+  _fbEnabled = false; _fbUrl = '';
+  Object.keys(_fbSseMap).forEach(function(k){ try{ _fbSseMap[k].close(); }catch(e){} });
+  _fbSseMap = {};
+  Object.keys(_pollTimers).forEach(function(k){ clearInterval(_pollTimers[k]); });
+  _pollTimers = {};
+  localStorage.removeItem('gs2_fb_url');
+  localStorage.setItem('gs2_fb_skip','1');
+  var ov = document.getElementById('ov'); if(ov) ov.remove();
+  fbIndicator('off','📴 切断しました');
+}
+
+/* ════════════════════════════════════════
+   自動切断・自動再接続（15分無操作で切断）
+════════════════════════════════════════ */
+var _fbIdleTimer = null;
+var _fbIdleMs = 15 * 60 * 1000; // 15分
+var _fbAutoDisconnected = false; // 自動切断フラグ（URLは保持）
+
+function fbResetIdleTimer(){
+  if(!_fbEnabled) return;
+  if(_fbIdleTimer) clearTimeout(_fbIdleTimer);
+  _fbIdleTimer = setTimeout(function(){
+    if(!_fbEnabled) return;
+    // 自動切断（URLはlocalStorageに保持したまま）
+    _fbEnabled = false;
+    _fbAutoDisconnected = true;
+    Object.keys(_fbSseMap).forEach(function(k){ try{ _fbSseMap[k].close(); }catch(e){} });
+    _fbSseMap = {};
+    Object.keys(_pollTimers).forEach(function(k){ clearInterval(_pollTimers[k]); });
+    _pollTimers = {};
+    fbIndicator('off', '💤 15分無操作のため切断');
+    // バナーを表示
+    _showReconnectBanner();
+  }, _fbIdleMs);
+}
+
+function _showReconnectBanner(){
+  var existing = document.getElementById('fb-reconnect-banner');
+  if(existing) return;
+  var banner = document.createElement('div');
+  banner.id = 'fb-reconnect-banner';
+  banner.style.cssText = 'position:fixed;bottom:0;left:0;right:0;background:#7a5000;color:#fff;font-size:13px;padding:10px 16px;display:flex;align-items:center;justify-content:space-between;z-index:300;font-family:var(--font)';
+  banner.innerHTML = '<span>💤 15分無操作のためFirebaseを切断しました</span>' +
+    '<button onclick="fbReconnectFromBanner()" style="background:#fff;color:#7a5000;border:none;border-radius:5px;padding:5px 14px;font-family:var(--font);font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap">🔄 再接続</button>';
+  document.body.appendChild(banner);
+}
+
+function fbReconnectFromBanner(){
+  var banner = document.getElementById('fb-reconnect-banner');
+  if(banner) banner.remove();
+  _fbAutoDisconnected = false;
+  var savedUrl = localStorage.getItem('gs2_fb_url');
+  if(savedUrl){
+    initFirebase(savedUrl);
+  } else {
+    showFbSettingsModal();
+  }
+}
+
+/* ユーザー操作を検知してタイマーリセット */
+function _fbSetupIdleDetect(){
+  var events = ['mousedown','touchstart','keydown','scroll','click'];
+  events.forEach(function(ev){
+    document.addEventListener(ev, function(){
+      // 自動切断後に操作があった場合は自動再接続
+      if(_fbAutoDisconnected){
+        _fbAutoDisconnected = false;
+        var banner = document.getElementById('fb-reconnect-banner');
+        if(banner) banner.remove();
+        var savedUrl = localStorage.getItem('gs2_fb_url');
+        if(savedUrl) initFirebase(savedUrl);
+        return;
+      }
+      fbResetIdleTimer();
+    }, {passive: true});
+  });
+}
+
+/* ページ非表示（バックグラウンド）時も切断 */
+document.addEventListener('visibilitychange', function(){
+  if(document.hidden){
+    // バックグラウンドになったらタイマー開始
+    if(_fbEnabled){
+      if(_fbIdleTimer) clearTimeout(_fbIdleTimer);
+      _fbIdleTimer = setTimeout(function(){
+        if(!_fbEnabled) return;
+        _fbEnabled = false;
+        _fbAutoDisconnected = true;
+        Object.keys(_fbSseMap).forEach(function(k){ try{ _fbSseMap[k].close(); }catch(e){} });
+        _fbSseMap = {};
+        Object.keys(_pollTimers).forEach(function(k){ clearInterval(_pollTimers[k]); });
+        _pollTimers = {};
+        fbIndicator('off', '💤 バックグラウンドのため切断');
+      }, _fbIdleMs);
+    }
+  } else {
+    // フォアグラウンドに戻ったら自動再接続
+    if(_fbAutoDisconnected){
+      _fbAutoDisconnected = false;
+      var banner = document.getElementById('fb-reconnect-banner');
+      if(banner) banner.remove();
+      var savedUrl = localStorage.getItem('gs2_fb_url');
+      if(savedUrl) setTimeout(function(){ initFirebase(savedUrl); }, 500);
+    } else if(_fbEnabled){
+      fbResetIdleTimer();
+    }
+  }
+});
+
+// アイドル検知を起動
+_fbSetupIdleDetect();
+
+/* ── 一時切断（URLは保持・再接続可能） ── */
+function suspendFirebase(reason){
+  if(!_fbEnabled) return;
+  _fbEnabled = false;
+  Object.keys(_fbSseMap).forEach(function(k){ try{ _fbSseMap[k].close(); }catch(e){} });
+  _fbSseMap = {};
+  Object.keys(_pollTimers).forEach(function(k){ clearInterval(_pollTimers[k]); });
+  _pollTimers = {};
+  fbIndicator('off', '💤 ' + (reason || '接続を一時停止'));
+}
+
+/* ── 再接続（URLを保持したまま） ── */
+function resumeFirebase(){
+  if(_fbEnabled) return;
+  var savedUrl = localStorage.getItem('gs2_fb_url');
+  if(!savedUrl) return;
+  _fbUrl = savedUrl;
+  _fbEnabled = true;
+  setupFirebaseListeners();
+  fbIndicator('sync', '🔄 再接続しました');
+  // 最新データを取得
+  fbGet('rows', function(val){
+    if(!val) return;
+    var arr = Array.isArray(val) ? val : Object.values(val);
+    rows = arr; refreshFilters(); renderTable();
+  });
+  fbGet('crows', function(val){
+    if(!val) return;
+    var arr = Array.isArray(val) ? val : Object.values(val);
+    cRows = arr;
+    if(currentDB === 'container') renderContainerTable();
+  });
+}
+
+/* ════════════════════════════════════════
+   自動切断 / 自動再接続（15分無操作で一時切断）
+════════════════════════════════════════ */
+var _idleTimer = null;
+var _idleSuspended = false;
+var IDLE_TIMEOUT = 15 * 60 * 1000; // 15分
+
+function resetIdleTimer(){
+  if(_idleTimer) clearTimeout(_idleTimer);
+  // 一時停止中なら再接続
+  if(_idleSuspended && localStorage.getItem('gs2_fb_url')){
+    _idleSuspended = false;
+    resumeFirebase();
+  }
+  _idleTimer = setTimeout(function(){
+    if(!localStorage.getItem('gs2_fb_url')) return; // Firebase未設定なら何もしない
+    _idleSuspended = true;
+    suspendFirebase('15分無操作のため切断');
+    // 切断通知（バナー表示）
+    showIdleBanner();
+  }, IDLE_TIMEOUT);
+}
+
+function showIdleBanner(){
+  // 既存バナーがあれば削除
+  var old = document.getElementById('idle-banner');
+  if(old) old.remove();
+  var banner = document.createElement('div');
+  banner.id = 'idle-banner';
+  banner.style.cssText = 'position:fixed;bottom:0;left:0;right:0;background:#7a5000;color:#fff;font-size:13px;padding:10px 16px;z-index:9000;display:flex;align-items:center;justify-content:space-between;font-family:var(--font)';
+  banner.innerHTML = '<span>💤 15分間無操作のためFirebaseを切断しました</span><button onclick="document.getElementById(\'idle-banner\').remove();resetIdleTimer();" style="background:#fff;color:#7a5000;border:none;padding:4px 12px;border-radius:4px;font-weight:600;cursor:pointer;font-family:var(--font)">再接続</button>';
+  document.body.appendChild(banner);
+}
+
+/* 操作イベントでタイマーリセット */
+(function(){
+  var events = ['mousedown','touchstart','keydown','scroll','click'];
+  events.forEach(function(ev){
+    document.addEventListener(ev, function(){ resetIdleTimer(); }, {passive:true});
+  });
+})();
+
+/* ── 起動時に自動接続 ── */
+(function(){
+  var savedUrl = localStorage.getItem('gs2_fb_url');
+  if(savedUrl){
+    setTimeout(function(){ initFirebase(savedUrl); }, 500);
+  }
+})();
+
+/* keyboard */
+
+
+/* keyboard */
+document.addEventListener('keydown',e=>{
+  if((e.ctrlKey||e.metaKey)&&e.key==='k'){e.preventDefault();if(cu)doSearch();}
+  if(e.key==='Escape'){closePicker();closeOverlay();}
+});
+
+/* ════════════════════════════════════════
+   CONTAINER SHIP DB
+════════════════════════════════════════ */
+const CONTAINER_OPTIONS = {
+  schedule:[
+    {v:'確定',c:'c2'},{v:'荷役完了',c:'c0'},{v:'予定',c:'c1'},{v:'キャンセル',c:'c7'},
+  ],
+  maeko_c:[
+    {v:'神戸',c:'c4'},{v:'岩国',c:'c4'},{v:'松山',c:'c4'},{v:'大阪',c:'c4'},{v:'博多',c:'c4'},
+    {v:'広島',c:'c4'},{v:'徳山',c:'c4'},{v:'横浜',c:'c4'},{v:'名古屋',c:'c4'},
+  ],
+  tsugiko_c:[
+    {v:'上海',c:'c2'},{v:'釜山',c:'c2'},{v:'青島',c:'c2'},{v:'寧波',c:'c2'},{v:'天津',c:'c2'},
+    {v:'香港',c:'c2'},{v:'シンガポール',c:'c2'},{v:'台北',c:'c2'},
+  ],
+  dairi:[
+    {v:'家永 寛基',c:'c7'},{v:'市川光明',c:'c7'},{v:'周防 征義',c:'c7'},
+    {v:'小河原 喬',c:'c7'},{v:'間崎 健',c:'c7'},
+  ],
+  tomari_c:[
+    {v:'検疫錨地',c:'c3'},{v:'直行着桟',c:'c14'},{v:'晴海西',c:'c8'},{v:'仙島東-1',c:'c8'},
+  ],
+  sessho:[
+    {v:'入船右舷',c:'c0'},{v:'入船左舷',c:'c0'},{v:'出船右舷',c:'c8'},{v:'出船左舷',c:'c8'},
+  ],
+  tons_kubun:[{v:'年間払い',c:'c14'},{v:'都度払い',c:'c14'},{v:'免除',c:'c14'}],
+  updater_c:[
+    {v:'家永 寛基',c:'c7'},{v:'市川光明',c:'c7'},{v:'周防 征義',c:'c7'},
+    {v:'小河原 喬',c:'c7'},{v:'間崎 健',c:'c7'},
+  ],
+  suisenin_tug:[
+    {v:'NO PILOT / NO TUG',c:'c14'},{v:'IN 1 TUG / OUT 0 TUG',c:'c2'},
+    {v:'IN 0 TUG / OUT 1 TUG',c:'c2'},{v:'IN 1 TUG / OUT 1 TUG',c:'c0'},
+    {v:'PILOT / NO TUG',c:'c1'},{v:'PILOT / 1 TUG',c:'c1'},
+  ],
+  };
+
+const CONTAINER_COLS_DEF = [
+  {key:'name',  label:'Name',               icon:'Aa',w:300,sort:true, type:'title'},
+  {key:'cut',   label:'CUT日',              icon:'📅',w:130,sort:true, type:'date'},
+  {key:'eta',   label:'ETA',               icon:'📅',w:160,sort:true, type:'date'},
+  {key:'etb',   label:'ETB',               icon:'📅',w:160,sort:true, type:'date'},
+  {key:'etd',   label:'ETD',               icon:'📅',w:160,sort:true, type:'date'},
+  {key:'schedule',label:'スケジュール',    icon:'📍',w:110,sort:true, type:'cselect',opts:'schedule'},
+  {key:'maeko_c', label:'前港',            icon:'📍',w:100,sort:true, type:'cselect',opts:'maeko_c'},
+  {key:'tsugiko_c',label:'次港',           icon:'📍',w:100,sort:true, type:'cselect',opts:'tsugiko_c'},
+  {key:'dairi', label:'代理店 担当者',     icon:'📍',w:130,sort:true, type:'cselect',opts:'dairi'},
+  {key:'rate',  label:'換算レート',        icon:'≡', w:110,sort:true, type:'rate'},
+  {key:'tomari_c',label:'停泊錨地',        icon:'📍',w:120,sort:true, type:'cselect',opts:'tomari_c'},
+  {key:'sessho',label:'接岸方向',          icon:'📍',w:110,sort:true, type:'cselect',opts:'sessho'},
+  {key:'isps_c',label:'ISPS/保安情報',     icon:'☑', w:140,sort:false,type:'check'},
+  {key:'sekka', label:'積荷目録提出NACCS', icon:'☑', w:180,sort:false,type:'check'},
+  {key:'rpm_c', label:'RPM-無線検疫',      icon:'☑', w:140,sort:false,type:'check'},
+  {key:'naccs_zen_c',label:'入港前統一申請NACCS',icon:'☑',w:190,sort:false,type:'check'},
+  {key:'naikamotsu',label:'内貨運送到着確認NACCS',icon:'☑',w:210,sort:false,type:'check'},
+  {key:'nyuko_c',label:'入港届NACCS',      icon:'☑', w:130,sort:false,type:'check'},
+  {key:'tons_kubun',label:'とん税区分',    icon:'≡', w:110,sort:true, type:'cselect',opts:'tons_kubun'},
+  {key:'tons_exp_c',label:'とん税有効期限',icon:'≡', w:130,sort:true, type:'text'},
+  {key:'tsumi_list',label:'積リスト通関',  icon:'☑', w:130,sort:false,type:'check'},
+  {key:'yage_list',label:'揚リスト通関',   icon:'☑', w:130,sort:false,type:'check'},
+  {key:'updater_c',label:'更新者',         icon:'📍',w:110,sort:true, type:'cselect',opts:'updater_c'},
+  {key:'upd_at_c',label:'最新動静更新日時',icon:'📅',w:170,sort:true, type:'date'},
+];
+let CONTAINER_COLS = buildOrderedCols(CONTAINER_COLS_DEF, 'gs2_ccol_order');
+let cColW = JSON.parse(localStorage.getItem('gs2_ccolw')||'null') || makeWidthMap(CONTAINER_COLS_DEF);
+const saveCColW      = () => localStorage.setItem('gs2_ccolw',   JSON.stringify(cColW));
+const saveCColOrder  = () => localStorage.setItem('gs2_ccol_order', JSON.stringify(CONTAINER_COLS.map(c=>c.key)));
+
+let cRows = JSON.parse(localStorage.getItem('gs2_crows')||'null') || [
+  {id:'c1',name:'[COS] WES SINA V-449E/W',   cut:'2026/02/06',eta:'2026/02/10 8:30', etb:'2026/02/11 7:00', etd:'2026/02/11 17:00',schedule:'確定',  maeko_c:'神戸',tsugiko_c:'上海',dairi:'家永 寛基',rate:'156.84',tomari_c:'',        sessho:'',      isps_c:true, sekka:true, rpm_c:true, naccs_zen_c:true, naikamotsu:false,nyuko_c:true, tons_kubun:'年間払い',tons_exp_c:'',                         tsumi_list:true, yage_list:false,updater_c:'家永 寛基',upd_at_c:''},
+  {id:'c2',name:'[SKX1] HANSUNG WEIHAI V-25', cut:'2025/12/08',eta:'2025/12/08 23:00',etb:'2025/12/09 12:00',etd:'2025/12/09 21:00',schedule:'荷役完了',maeko_c:'岩国',tsugiko_c:'釜山',dairi:'',        rate:'156.12',tomari_c:'',        sessho:'',      isps_c:true, sekka:true, rpm_c:true, naccs_zen_c:false,naikamotsu:false,nyuko_c:false,tons_kubun:'',       tons_exp_c:'',tsumi_list:true, yage_list:true, updater_c:'市川光明',upd_at_c:''},
+  {id:'c3',name:'[MSX] MOJI EXPRESS V-25',    cut:'2025/11/21',eta:'2025/11/21 20:30',etb:'2025/11/21 7:30', etd:'2025/11/22 16:30',schedule:'荷役完了',maeko_c:'松山',tsugiko_c:'釜山',dairi:'周防 征義',rate:'158.29',tomari_c:'検疫錨地',sessho:'入船右舷',isps_c:true, sekka:true, rpm_c:true, naccs_zen_c:true, naikamotsu:true, nyuko_c:true, tons_kubun:'',       tons_exp_c:'', tsumi_list:true, yage_list:false,updater_c:'市川光明',upd_at_c:''},
+  {id:'c4',name:'[SITC] SITC TIAN JIN V-202', cut:'2026/02/05',eta:'2026/02/10 12:00',etb:'2026/02/11 18:00',etd:'2026/02/12 3:00', schedule:'確定',  maeko_c:'神戸',tsugiko_c:'上海',dairi:'小河原 喬',rate:'155.78',tomari_c:'検疫錨地',sessho:'',      isps_c:true, sekka:true, rpm_c:true, naccs_zen_c:true, naikamotsu:true, nyuko_c:true, tons_kubun:'',       tons_exp_c:'', tsumi_list:true, yage_list:false,updater_c:'家永 寛基',upd_at_c:'2026/02/10 16:50'},
+];
+/* saveCRows: Firebase連携セクションで定義 */
+
+/* ── CURRENT DB STATE ── */
+let currentDB = 'gaiko'; // 'gaiko' | 'container'
+let currentViewMode = 'table'; // 'table' | 'calendar'
+let calYear = new Date().getFullYear();
+let calMonth = new Date().getMonth();
+
+function switchDB(db){
+  currentDB = db;
+  currentViewMode = 'table';
+  const sbG=document.getElementById('sb-gaiko');
+  const sbC=document.getElementById('sb-container');
+  if(sbG) sbG.classList.toggle('act', db==='gaiko');
+  if(sbC) sbC.classList.toggle('act', db==='container');
+  const titleEl=document.getElementById('db-main-title');
+  if(titleEl) titleEl.textContent = db==='gaiko'?'外航船 動静一覧':'外航コンテナ船 動静表';
+  const bcEl=document.getElementById('bc');
+  if(bcEl) bcEl.innerHTML = `<span>${db==='gaiko'?'🚢 外航船 動静一覧':'📦 外航コンテナ船 動静表'}</span>`;
+  // show calendar tab only for container
+  const calBtn=document.getElementById('vbtn-cal');
+  if(calBtn) calBtn.style.display = db==='container'?'':'none';
+  // swap filter bars
+  const fnw=document.getElementById('f-niyaku-wrap');
+  const fsw=document.getElementById('f-schedule-wrap');
+  if(fnw) fnw.style.display = db==='gaiko'?'':'none';
+  if(fsw) fsw.style.display = db==='container'?'':'none';
+  setViewMode('table');
+  if(db==='gaiko'){refreshFilters();renderTable();}
+  else{refreshContainerFilters();renderContainerTable();}
+}
+
+function setViewMode(mode){
+  currentViewMode = mode;
+  const vt=document.getElementById('vbtn-table');
+  const vc=document.getElementById('vbtn-cal');
+  const tw=document.getElementById('tbl-wrap-main');
+  const cal=document.getElementById('cal-view');
+  if(vt) vt.style.background = mode==='table'?'var(--sel)':'';
+  if(vc) vc.style.background = mode==='calendar'?'var(--sel)':'';
+  if(tw) tw.style.display = mode==='table'?'':'none';
+  if(cal){ cal.style.display = mode==='calendar'?'flex':'none'; }
+  if(mode==='calendar') renderCalendar();
+}
+
+function onFilterChange(){
+  if(currentDB==='gaiko') renderTable();
+  else renderContainerTable();
+}
+
+/* ── CONTAINER FILTER ── */
+function refreshContainerFilters(){
+  const ss=document.getElementById('f-schedule');
+  const scur=ss ? ss.value||'' : '';
+  if(ss){ss.innerHTML='<option value="">すべて</option>';
+    CONTAINER_OPTIONS.schedule.forEach(o=>{const el=document.createElement('option');el.value=el.textContent=o.v;if(o.v===scur)el.selected=true;ss.appendChild(el);});}
+}
+
+function getContainerColor(opts_key, val){
+  const opt=(CONTAINER_OPTIONS[opts_key]||[]).find(o=>o.v===val);
+  return opt?opt.c:'c14';
+}
+
+function getFilteredCRows(){
+  const fn=((document.getElementById('f-name') ? document.getElementById('f-name').value : '')||'').toLowerCase();
+  const fs=(document.getElementById('f-schedule') ? document.getElementById('f-schedule').value : '')||'';
+  return cRows.filter(r=>{
+    if(fn&&!(r.name||'').toLowerCase().includes(fn))return false;
+    if(fs&&r.schedule!==fs)return false;
+    return true;
+  }).sort((a,b)=>{
+    let av=a[sort.col]||'',bv=b[sort.col]||'';
+    if(av<bv)return sort.dir==='asc'?-1:1;if(av>bv)return sort.dir==='asc'?1:-1;return 0;
+  });
+}
+
+function renderContainerTable(){
+  const data = getFilteredCRows();
+  const cnt=document.getElementById('fc-cnt');if(cnt)cnt.textContent=data.length+'件';
+
+  // thead
+  const thead=document.getElementById('thead');if(!thead)return;
+  thead.innerHTML='';
+  const htr=document.createElement('tr');
+  CONTAINER_COLS.forEach((col,colIdx)=>{
+    const th=document.createElement('th');
+    th.style.width=cColW[col.key]+'px';th.dataset.key=col.key;
+    th.draggable=true;
+    const inner=document.createElement('div');inner.className='th-in';
+    const handle=document.createElement('span');handle.className='th-drag-handle';handle.textContent='⠿';handle.title='ドラッグで列移動';
+    handle.style.pointerEvents='none';
+    inner.appendChild(handle);
+    const ic=document.createElement('span');ic.className='th-ic';ic.textContent=col.icon;inner.appendChild(ic);
+    const lbl2=document.createElement('span');lbl2.className='th-lbl';
+    lbl2.textContent=getColLabel(col.key,'container');
+    lbl2.title='ダブルタップ/クリックで列名を変更';
+    lbl2.style.cursor='pointer';
+    addDoubleTap(lbl2, e=>{
+      const cur=lbl2.textContent;
+      const inp=document.createElement('input');
+      inp.className='th-lbl-edit';inp.value=cur;
+      inp.addEventListener('click',ev=>ev.stopPropagation());
+      inp.addEventListener('mousedown',ev=>ev.stopPropagation());
+      inp.addEventListener('touchstart',ev=>ev.stopPropagation());
+      lbl2.replaceWith(inp);inp.focus();inp.select();
+      const commit=()=>{
+        const v=inp.value.trim();
+        if(v&&v!==cur){cColLabels[col.key]=v;saveCColLabels();}
+        else if(!v){delete cColLabels[col.key];saveCColLabels();}
+        renderContainerTable();
+      };
+      inp.addEventListener('blur',commit);
+      inp.addEventListener('keydown',e2=>{
+        e2.stopPropagation();
+        if(e2.key==='Enter')inp.blur();
+        if(e2.key==='Escape'){inp.value=cur;inp.removeEventListener('blur',commit);inp.blur();renderContainerTable();}
+      });
+    });
+    inner.appendChild(lbl2);
+    if(col.sort){
+      const arr=document.createElement('span');arr.className='sort-a'+(sort.col===col.key?' on':'');
+      arr.textContent=sort.col===col.key?(sort.dir==='asc'?'↑':'↓'):'↕';
+      inner.appendChild(arr);
+      inner.addEventListener('click',ev=>{
+        if(ev.target.classList.contains('resizer'))return;
+        sort.col===col.key?(sort.dir=sort.dir==='asc'?'desc':'asc'):(sort={col:col.key,dir:'asc'});renderContainerTable();
+      });
+    }
+    const res=document.createElement('div');res.className='resizer';
+    res.style.pointerEvents='auto';
+    res.addEventListener('mousedown',ev=>{ev.stopPropagation();startCResize(ev,col.key,th);});
+    res.addEventListener('touchstart',ev=>{ev.stopPropagation();startCResize(ev,col.key,th);},{passive:false});
+    inner.appendChild(res);th.appendChild(inner);
+    th.addEventListener('dragstart', e=>{ if(e.target.classList.contains('resizer'))return; startColDrag(e,col.key,'container'); });
+    th.addEventListener('dragover',  e=>colDragOver(e,th));
+    th.addEventListener('dragleave', e=>colDragLeave(e,th));
+    th.addEventListener('drop',      e=>colDrop(e,col.key,'container'));
+    th.addEventListener('dragend',   ()=>colDragEnd());
+    htr.appendChild(th);
+  });
+  thead.appendChild(htr);
+
+  // tbody
+  const tbody=document.getElementById('tbody');if(!tbody)return;
+  tbody.innerHTML='';
+  data.forEach(row=>{
+    const tr=document.createElement('tr');
+    if(!isGuest) tr.onclick=()=>showContainerDetail(row.id);
+    else tr.onclick=()=>showGuestDetail(row.id,'container');
+    tr.style.cursor='pointer';
+    CONTAINER_COLS.forEach(col=>{
+      const td=document.createElement('td');td.style.width=cColW[col.key]+'px';
+      const val=row[col.key];
+      if(col.type==='title'){
+        const wrap=document.createElement('div');wrap.className='td-name';
+        const iconSrc=shipIcons[row.id]||'';
+        const ic=document.createElement('div');ic.className='td-pg-ic';
+        if(iconSrc){
+          const img=document.createElement('img');
+          img.src=iconSrc;img.style.cssText='width:18px;height:18px;border-radius:3px;object-fit:cover;display:block';
+          ic.appendChild(img);
+        } else { ic.textContent='📄'; }
+        const nm=document.createElement('span');nm.className='td-nm-txt';nm.textContent=val||'—';
+        const op=document.createElement('span');op.className='td-open';op.textContent='開く';
+        op.onclick=e=>{e.stopPropagation();showContainerDetail(row.id);};
+        wrap.append(ic,nm,op);td.appendChild(wrap);
+      } else if(col.type==='cselect'){
+        if(val){const b=document.createElement('span');b.className='badge '+getContainerColor(col.opts,val);b.textContent=val;td.appendChild(b);}
+      } else if(col.type==='check'){
+        const cb=document.createElement('div');cb.className='cb'+(val?' chk':'');
+        if(!isGuest) cb.onclick=e=>{
+          e.stopPropagation();
+          row[col.key]=!row[col.key];
+          row.upd_at_c=new Date().toLocaleString('ja-JP',{year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'});
+          if(cu) row.updater_c=cu.name;
+          saveCRows();renderContainerTable();setSave('saved');
+        };
+        else cb.style.cursor='default';
+        td.appendChild(cb);td.style.textAlign='center';
+      } else if(col.type==='rate'){
+        if(val) td.textContent='¥ '+val; else td.style.color='var(--t4)';
+      } else {
+        const s=document.createElement('span');s.className='dt';s.textContent=val||'';td.appendChild(s);
+      }
+      tr.appendChild(td);
+    });
+    tbody.appendChild(tr);
+  });
+  if(isGuest){setTimeout(()=>{document.querySelectorAll('.db-new-btn,.add-row,.sb-add').forEach(el=>el.style.display='none');document.querySelectorAll('.td-open').forEach(el=>el.style.display='none');},0);}
+}
+
+let _cr=null;
+function startCResize(e,key,th){
+  e.preventDefault();e.stopPropagation();
+  const startX = e.touches ? e.touches[0].clientX : e.clientX;
+  const sw=cColW[key];
+  th.querySelector('.resizer').classList.add('act');
+  _cr={key,sx:startX,sw,el:th.querySelector('.resizer')};
+  const mv=ev=>{
+    const cx = ev.touches ? ev.touches[0].clientX : ev.clientX;
+    cColW[_cr.key]=Math.max(50,_cr.sw+(cx-_cr.sx));saveCColW();renderContainerTable();
+  };
+  const up=()=>{
+    if(_cr)_cr.el.classList.remove('act');_cr=null;
+    document.removeEventListener('mousemove',mv);document.removeEventListener('mouseup',up);
+    document.removeEventListener('touchmove',mv);document.removeEventListener('touchend',up);
+  };
+  document.addEventListener('mousemove',mv);document.addEventListener('mouseup',up);
+  document.addEventListener('touchmove',mv,{passive:false});document.addEventListener('touchend',up);
+}
+
+/* ── CONTAINER DETAIL MODAL ── */
+let _editCRow = null;
+function showContainerDetail(id){
+  const row=cRows.find(r=>r.id===id);if(!row)return;
+  _editCRow=Object.assign({}, row);
+  const CSEL=[
+    {k:'schedule',l:'スケジュール',ic:'📍',opts:'schedule'},
+    {k:'maeko_c',l:'前港',ic:'📍',opts:'maeko_c'},
+    {k:'tsugiko_c',l:'次港',ic:'📍',opts:'tsugiko_c'},
+    {k:'dairi',l:'代理店 担当者',ic:'📍',opts:'dairi'},
+    {k:'tomari_c',l:'停泊錨地',ic:'📍',opts:'tomari_c'},
+    {k:'sessho',l:'接岸方向',ic:'📍',opts:'sessho'},
+    {k:'tons_kubun',l:'とん税区分',ic:'≡',opts:'tons_kubun'},
+    {k:'updater_c',l:'更新者',ic:'📍',opts:'updater_c'},
+  ];
+  const CDATE=[
+    {k:'cut',l:'CUT日'},{k:'eta',l:'ETA'},{k:'etb',l:'ETB'},{k:'etd',l:'ETD'},
+    {k:'tons_exp_c',l:'とん税有効期限'},
+  ];
+  const CTXT=[{k:'rate',l:'換算レート（¥）'}];
+  const CCB=[
+    {k:'isps_c',l:'ISPS/保安情報'},{k:'sekka',l:'積荷目録提出NACCS'},{k:'rpm_c',l:'RPM-無線検疫'},
+    {k:'naccs_zen_c',l:'入港前統一申請NACCS'},{k:'naikamotsu',l:'内貨運送到着確認NACCS'},
+    {k:'nyuko_c',l:'入港届NACCS'},{k:'tsumi_list',l:'積リスト通関'},{k:'yage_list',l:'揚リスト通関'},
+  ];
+  const selRows=CSEL.map(f=>`<div class="prop-row" id="cprow-${f.k}"><div class="prop-key prop-key-editable" data-field="${f.k}" data-default="${f.l}" data-ic="${f.ic}"><span class="prop-key-ic">${f.ic}</span><span class="prop-key-lbl" title="ダブルタップで項目名を変更">${getPropLabel(f.k,f.l)}</span></div><div class="prop-val" id="cpval-${f.k}" onclick="openCDetailPicker('${f.k}','${f.opts}',event)">${row[f.k]?`<span class="sel-badge ${getContainerColor(f.opts,row[f.k])}">${row[f.k]}</span>`:'<span class="prop-placeholder">選択…</span>'}</div></div>`).join('');
+  const dateRows=CDATE.map(f=>`<div class="prop-row"><div class="prop-key prop-key-editable" data-field="${f.k}" data-default="${f.l}" data-ic="📅"><span class="prop-key-ic">📅</span><span class="prop-key-lbl" title="ダブルタップで項目名を変更">${getPropLabel(f.k,f.l)}</span></div><div class="prop-val cal-date-trigger" onclick="openCalPopup('${f.k}',_editCRow['${f.k}'],this,_editCRow,${f.k==='cut'?'false':'true'})"><span id="calval-${f.k}" style="font-size:13px;color:${row[f.k]?'var(--text)':'var(--t4)'};cursor:pointer">${row[f.k]||'クリックして日付を選択…'}</span>${row[f.k]?`<button class="date-field-clear" onclick="event.stopPropagation();_editCRow['${f.k}']='';document.getElementById('calval-${f.k}').textContent='クリックして日付を選択…';document.getElementById('calval-${f.k}').style.color='var(--t4)'">×</button>`:''}</div></div>`).join('');
+  const txtRows=CTXT.map(f=>`<div class="prop-row"><div class="prop-key prop-key-editable" data-field="${f.k}" data-default="${f.l}" data-ic="≡"><span class="prop-key-ic">≡</span><span class="prop-key-lbl" title="ダブルタップで項目名を変更">${getPropLabel(f.k,f.l)}</span></div><div class="prop-val"><input class="prop-text-input" value="${row[f.k]||''}" placeholder="—" oninput="_editCRow['${f.k}']=this.value"></div></div>`).join('');
+  const cbRows=CCB.map(f=>`<div class="prop-row"><div class="prop-key prop-key-editable" data-field="${f.k}" data-default="${f.l}" data-ic="☑"><span class="prop-key-ic">☑</span><span class="prop-key-lbl" title="ダブルタップで項目名を変更">${getPropLabel(f.k,f.l)}</span></div><div class="prop-val"><div class="prop-cb-wrap"><div class="cb${row[f.k]?' chk':''}" id="ccb-${f.k}" onclick="toggleCCB('${f.k}')"></div><span style="font-size:13px">${row[f.k]?'はい':'いいえ'}</span></div></div></div>`).join('');
+
+  showOverlay(`<div class="modal">
+    <div class="modal-top">
+      <textarea class="modal-title-input" id="cdet-name" rows="1" placeholder="船名">${row.name||''}</textarea>
+      <button class="modal-close-btn" onclick="closeOverlay()">✕</button>
+    </div>
+    <div class="prop-list">
+      <div id="icon-wrap-${row.id}">${renderShipIconSection(row.id,true)}</div>
+      ${selRows}<div class="prop-divider"></div>
+      ${dateRows}<div class="prop-divider"></div>
+      ${txtRows}<div class="prop-divider"></div>
+      ${cbRows}
+      <div class="subtable-section">
+        <div class="subtable-title">🚤 水先人 曳船 利用情報</div>
+        <div id="sui-wrap-${row.id}"></div>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="ma-btn danger" onclick="deleteCRow('${row.id}')">削除</button>
+      <button class="ma-btn" onclick="closeOverlay()">キャンセル</button>
+      <button class="ma-btn primary" onclick="saveCDetail()">保存</button>
+    </div>
+  </div>`);
+  const ta=document.getElementById('cdet-name');
+  if(ta){ta.style.height='auto';ta.style.height=ta.scrollHeight+'px';ta.addEventListener('input',()=>{ta.style.height='auto';ta.style.height=ta.scrollHeight+'px';_editCRow.name=ta.value;});}
+  bindPropKeyEditable();
+  renderSuiTable(row.id);
+}
+
+function openCDetailPicker(field, opts_key, e){
+  e.stopPropagation();
+  const anchor=document.getElementById('cpval-'+field);
+  // temporarily use OPTIONS system with container opts
+  const savedField=_picker.field;
+  OPTIONS['_c_'+field]=CONTAINER_OPTIONS[opts_key]||[];
+  SINGLE_SELECT.add('_c_'+field);
+  openPicker('_c_'+field,_editCRow[field]||'',anchor,val=>{
+    _editCRow[field]=val;
+    const pval=document.getElementById('cpval-'+field);
+    if(pval){pval.innerHTML=val?`<span class="sel-badge ${getContainerColor(opts_key,val)}">${val}</span>`:'<span class="prop-placeholder">選択…</span>';pval.onclick=ev=>openCDetailPicker(field,opts_key,ev);}
+  });
+}
+
+function toggleCCB(key){
+  _editCRow[key]=!_editCRow[key];
+  const cb=document.getElementById('ccb-'+key);
+  if(cb){cb.classList.toggle('chk',_editCRow[key]);}
+  const lbl=cb?cb.nextElementSibling:null;if(lbl)lbl.textContent=_editCRow[key]?'はい':'いいえ';
+}
+
+function saveCDetail(){
+  const idx=cRows.findIndex(r=>r.id===_editCRow.id);if(idx<0)return;
+  _editCRow.upd_at_c=new Date().toLocaleString('ja-JP',{year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'});
+  // updater_c はユーザーが選択した値を使用（上書きしない）
+  cRows[idx]=Object.assign({}, _editCRow);saveCRows();closeOverlay();renderContainerTable();setSave('saved');
+}
+
+function deleteCRow(id){
+  showConfirm('このレコードを削除しますか？', ()=>{
+    cRows=cRows.filter(r=>r.id!==id);saveCRows();closeOverlay();renderContainerTable();
+  });
+}
+
+/* ── NEW CONTAINER ROW ── */
+let _newCRow={};
+function showNewContainerRowModal(){
+  _newCRow={id:'c'+Date.now(),name:'',cut:'',eta:'',etb:'',etd:'',schedule:'',maeko_c:'',tsugiko_c:'',dairi:'',rate:'',tomari_c:'',sessho:'',isps_c:false,sekka:false,rpm_c:false,naccs_zen_c:false,naikamotsu:false,nyuko_c:false,tons_kubun:'',tons_exp_c:'',tsumi_list:false,yage_list:false,updater_c:(cu ? cu.name : ''),upd_at_c:''};
+  const CSEL2=[
+    {k:'schedule',l:'スケジュール',ic:'📍',opts:'schedule'},
+    {k:'maeko_c',l:'前港',ic:'📍',opts:'maeko_c'},
+    {k:'tsugiko_c',l:'次港',ic:'📍',opts:'tsugiko_c'},
+    {k:'dairi',l:'代理店 担当者',ic:'📍',opts:'dairi'},
+    {k:'tomari_c',l:'停泊錨地',ic:'📍',opts:'tomari_c'},
+    {k:'sessho',l:'接岸方向',ic:'📍',opts:'sessho'},
+  ];
+  const selRows=CSEL2.map(f=>`<div class="prop-row"><div class="prop-key"><span class="prop-key-ic">${f.ic}</span>${f.l}</div><div class="prop-val" id="ncpval-${f.k}" onclick="openNCPicker('${f.k}','${f.opts}',event)"><span class="prop-placeholder">選択…</span></div></div>`).join('');
+  showOverlay(`<div class="modal smodal">
+    <div class="modal-top"><div style="font-size:17px;font-weight:700;flex:1">新しいレコード（コンテナ）</div><button class="modal-close-btn" onclick="closeOverlay()">✕</button></div>
+    <div class="prop-list">
+      <div class="prop-row"><div class="prop-key"><span class="prop-key-ic">Aa</span>Name</div><div class="prop-val"><input class="prop-text-input" placeholder="[COS] WES SINA V-449E/W" oninput="_newCRow.name=this.value"></div></div>
+      <div class="prop-row"><div class="prop-key"><span class="prop-key-ic">📅</span>CUT日</div><div class="prop-val cal-date-trigger" onclick="openCalPopup('cut',_newCRow.cut,this,_newCRow,false)"><span id="calval-cut" style="font-size:13px;color:var(--t4);cursor:pointer">クリックして日付を選択…</span></div></div>
+      <div class="prop-row"><div class="prop-key"><span class="prop-key-ic">📅</span>ETA</div><div class="prop-val cal-date-trigger" onclick="openCalPopup('eta',_newCRow.eta,this,_newCRow,true)"><span id="calval-eta" style="font-size:13px;color:var(--t4);cursor:pointer">クリックして日付を選択…</span></div></div>
+      <div class="prop-row"><div class="prop-key"><span class="prop-key-ic">📅</span>ETB</div><div class="prop-val cal-date-trigger" onclick="openCalPopup('etb',_newCRow.etb,this,_newCRow,true)"><span id="calval-etb" style="font-size:13px;color:var(--t4);cursor:pointer">クリックして日付を選択…</span></div></div>
+      <div class="prop-row"><div class="prop-key"><span class="prop-key-ic">📅</span>ETD</div><div class="prop-val cal-date-trigger" onclick="openCalPopup('etd',_newCRow.etd,this,_newCRow,true)"><span id="calval-etd" style="font-size:13px;color:var(--t4);cursor:pointer">クリックして日付を選択…</span></div></div>
+      ${selRows}
+      <div class="prop-row"><div class="prop-key"><span class="prop-key-ic">≡</span>換算レート</div><div class="prop-val"><input class="prop-text-input" placeholder="156.84" oninput="_newCRow.rate=this.value"></div></div>
+    </div>
+    <div class="modal-actions">
+      <button class="ma-btn" onclick="closeOverlay()">キャンセル</button>
+      <button class="ma-btn primary" onclick="createCRow()">作成</button>
+    </div>
+  </div>`);
+  setTimeout(()=>{const _e=document.querySelector('#modal-ov .prop-text-input');if(_e)_e.focus();},40);
+}
+
+function openNCPicker(field,opts_key,e){
+  e.stopPropagation();
+  const anchor=document.getElementById('ncpval-'+field);
+  OPTIONS['_c_'+field]=CONTAINER_OPTIONS[opts_key]||[];
+  SINGLE_SELECT.add('_c_'+field);
+  openPicker('_c_'+field,_newCRow[field]||'',anchor,val=>{
+    _newCRow[field]=val;
+    const pval=document.getElementById('ncpval-'+field);
+    if(pval){pval.innerHTML=val?`<span class="sel-badge ${getContainerColor(opts_key,val)}">${val}</span>`:'<span class="prop-placeholder">選択…</span>';pval.onclick=ev=>openNCPicker(field,opts_key,ev);}
+  });
+}
+
+function createCRow(){
+  if(!_newCRow.name){alert('船名を入力してください');return;}
+  _newCRow.upd_at_c=new Date().toLocaleString('ja-JP',{year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'});
+  cRows.push(Object.assign({}, _newCRow));saveCRows();closeOverlay();renderContainerTable();setSave('saved');
+}
+
+/* ── CALENDAR VIEW ── */
+function renderCalendar(){
+  const label=document.getElementById('cal-month-label');
+  const body=document.getElementById('cal-body');
+  if(!label||!body)return;
+  label.textContent=`${calYear}年 ${calMonth+1}月`;
+  body.innerHTML='';
+  const first=new Date(calYear,calMonth,1).getDay();
+  const days=new Date(calYear,calMonth+1,0).getDate();
+  const today=new Date();
+
+  // empty cells before first day
+  for(let i=0;i<first;i++){
+    const cell=document.createElement('div');
+    cell.style.cssText='background:var(--bg);min-height:90px;padding:4px';
+    body.appendChild(cell);
+  }
+  for(let d=1;d<=days;d++){
+    const cell=document.createElement('div');
+    const isToday=d===today.getDate()&&calMonth===today.getMonth()&&calYear===today.getFullYear();
+    cell.style.cssText=`background:var(--bg);min-height:90px;padding:4px;${isToday?'outline:2px solid var(--blue);outline-offset:-1px':''}`;
+    const dayLabel=document.createElement('div');
+    dayLabel.style.cssText='font-size:12px;font-weight:600;margin-bottom:3px;color:'+(isToday?'var(--blue)':'var(--t3)');
+    dayLabel.textContent=d;
+    cell.appendChild(dayLabel);
+    // find ships with ETA on this day
+    const dateStr=`${calYear}/${String(calMonth+1).padStart(2,'0')}/${String(d).padStart(2,'0')}`;
+    const fn=((document.getElementById('f-name') ? document.getElementById('f-name').value : '')||'').toLowerCase();
+    cRows.filter(r=>r.eta&&r.eta.startsWith(dateStr)&&(!fn||r.name.toLowerCase().includes(fn))).forEach(r=>{
+      const chip=document.createElement('div');
+      const sc=r.schedule?getContainerColor('schedule',r.schedule):'c14';
+      chip.className='badge '+sc;
+      chip.style.cssText='display:block;margin-bottom:2px;cursor:pointer;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px';
+      chip.title=r.name+(r.eta?' ETA:'+r.eta:'');
+      chip.textContent=r.name.replace(/^\[.*?\]\s*/,'');
+      chip.onclick=e=>{e.stopPropagation();if(!isGuest)showContainerDetail(r.id);};
+      cell.appendChild(chip);
+    });
+    body.appendChild(cell);
+  }
+}
+
+function calMove(dir){
+  calMonth+=dir;
+  if(calMonth>11){calMonth=0;calYear++;}
+  if(calMonth<0){calMonth=11;calYear--;}
+  renderCalendar();
+}
+function calToday(){
+  calYear=new Date().getFullYear();calMonth=new Date().getMonth();renderCalendar();
+}
+</script>
+</body>
+</html>
