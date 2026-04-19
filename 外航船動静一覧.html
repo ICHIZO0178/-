@@ -2283,7 +2283,6 @@ function bindPropKeyEditable(){
 ════════════════════════════════════════ */
 var _fbUrl = '';        // Firebase Database URL
 var _fbEnabled = false;
-var _fbSseMap = {};     // SSEコネクション管理 {key: EventSource}
 var _fbWriteTimer = {}; // デバウンス用タイマー
 
 /* 同期インジケーター */
@@ -2326,45 +2325,34 @@ function fbGet(key, cb){
 /* ── SSE: リアルタイム監視 ── */
 function fbWatch(key, cb){
   if(!_fbEnabled || !_fbUrl) return;
-  // 既存SSEを切断
-  if(_fbSseMap[key]){ try{ _fbSseMap[key].close(); }catch(e){} }
-  var url = _fbUrl + '/' + key + '.json';
-  try{
-    var es = new EventSource(url);
-    _fbSseMap[key] = es;
-    es.addEventListener('put', function(e){
-      try{
-        var d = JSON.parse(e.data);
-        if(d && d.data !== undefined) cb(d.data);
-      }catch(ex){}
-    });
-    es.addEventListener('patch', function(e){
-      try{
-        var d = JSON.parse(e.data);
-        if(d && d.data !== undefined) cb(d.data);
-      }catch(ex){}
-    });
-    es.onerror = function(){
-      fbIndicator('err', '⚠ 接続が切れました。再接続中…');
-      setTimeout(function(){ fbWatch(key, cb); }, 5000);
-    };
-  } catch(e){
-    // SSE非対応環境（古いブラウザ）→ポーリングにフォールバック
-    fbPoll(key, cb);
-  }
+  // SSEは環境依存が大きいためポーリングに統一
+  fbPoll(key, cb);
 }
 
-/* ── ポーリング（SSE非対応時のフォールバック） ── */
+/* ── ポーリング（3秒間隔） ── */
 var _pollTimers = {};
+var _pollLastVal = {};
 function fbPoll(key, cb){
   if(_pollTimers[key]) clearInterval(_pollTimers[key]);
-  var lastVal = null;
+  _pollLastVal[key] = null;
+  // 初回は即時取得
+  fbGet(key, function(data){
+    var str = JSON.stringify(data);
+    _pollLastVal[key] = str;
+    cb(data);
+  });
+  // 以降3秒ごとに差分チェック
   _pollTimers[key] = setInterval(function(){
+    if(!_fbEnabled) return;
     fbGet(key, function(data){
       var str = JSON.stringify(data);
-      if(str !== lastVal){ lastVal = str; cb(data); }
+      if(str !== _pollLastVal[key]){
+        _pollLastVal[key] = str;
+        cb(data);
+        fbIndicator('sync', '✓ 更新を受信');
+      }
     });
-  }, 8000); // 8秒ごと
+  }, 3000);
 }
 
 /* ── デバウンス付き書き込み ── */
@@ -2536,10 +2524,8 @@ function reconnectFirebase(){
 
 function disconnectFirebase(){
   _fbEnabled = false; _fbUrl = '';
-  Object.keys(_fbSseMap).forEach(function(k){ try{ _fbSseMap[k].close(); }catch(e){} });
-  _fbSseMap = {};
   Object.keys(_pollTimers).forEach(function(k){ clearInterval(_pollTimers[k]); });
-  _pollTimers = {};
+  _pollTimers = {}; _pollLastVal = {};
   localStorage.removeItem('gs2_fb_url');
   localStorage.setItem('gs2_fb_skip','1');
   var ov = document.getElementById('ov'); if(ov) ov.remove();
@@ -2561,9 +2547,9 @@ function fbResetIdleTimer(){
     // 自動切断（URLはlocalStorageに保持したまま）
     _fbEnabled = false;
     _fbAutoDisconnected = true;
-    Object.keys(_fbSseMap).forEach(function(k){ try{ _fbSseMap[k].close(); }catch(e){} });
-    _fbSseMap = {};
     Object.keys(_pollTimers).forEach(function(k){ clearInterval(_pollTimers[k]); });
+  _pollTimers = {}; _pollLastVal = {};
+  Object.keys(_pollTimers).forEach(function(k){ clearInterval(_pollTimers[k]); });
     _pollTimers = {};
     fbIndicator('off', '💤 15分無操作のため切断');
     // バナーを表示
@@ -2623,9 +2609,9 @@ document.addEventListener('visibilitychange', function(){
         if(!_fbEnabled) return;
         _fbEnabled = false;
         _fbAutoDisconnected = true;
-        Object.keys(_fbSseMap).forEach(function(k){ try{ _fbSseMap[k].close(); }catch(e){} });
-        _fbSseMap = {};
         Object.keys(_pollTimers).forEach(function(k){ clearInterval(_pollTimers[k]); });
+  _pollTimers = {}; _pollLastVal = {};
+  Object.keys(_pollTimers).forEach(function(k){ clearInterval(_pollTimers[k]); });
         _pollTimers = {};
         fbIndicator('off', '💤 バックグラウンドのため切断');
       }, _fbIdleMs);
@@ -2651,10 +2637,8 @@ _fbSetupIdleDetect();
 function suspendFirebase(reason){
   if(!_fbEnabled) return;
   _fbEnabled = false;
-  Object.keys(_fbSseMap).forEach(function(k){ try{ _fbSseMap[k].close(); }catch(e){} });
-  _fbSseMap = {};
   Object.keys(_pollTimers).forEach(function(k){ clearInterval(_pollTimers[k]); });
-  _pollTimers = {};
+  _pollTimers = {}; _pollLastVal = {};
   fbIndicator('off', '💤 ' + (reason || '接続を一時停止'));
 }
 
